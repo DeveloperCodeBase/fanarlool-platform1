@@ -188,6 +188,7 @@ function App() {
   const [energyTargets, setEnergyTargets] = useState({ electricity: 10, gas: 8, air: 12 });
   const [oeeTargets, setOeeTargets] = useState({ L1: 92, L2: 90, L3: 88 });
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarPinned, setSidebarPinned] = useState(true);
   const [password, setPassword] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
 
@@ -329,9 +330,9 @@ function App() {
         aria-hidden={!sidebarOpen}
       />
       <aside
-        className={`glass fixed inset-y-0 z-30 w-72 transform border-r border-white/10 bg-slate-900/80 p-6 transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        } max-h-screen overflow-y-auto`}
+        className={`glass fixed inset-y-0 z-30 w-72 transform border-r border-white/10 bg-slate-900/80 p-6 transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } ${sidebarPinned ? "lg:translate-x-0" : "lg:-translate-x-full"} max-h-screen overflow-y-auto`}
       >
         <div className="mb-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -353,11 +354,11 @@ function App() {
         </div>
         <nav className="space-y-2 text-sm">
           {[
-            { href: "#overview", label: t.overview },
-            { href: "#energy", label: t.energyDashboard },
-            { href: "#oee", label: t.oeeDashboard },
-            { href: "#reports", label: t.reports },
-            { href: "#contact", label: t.contacts },
+            { href: "#overview", label: lang === "fa" ? "داشبورد" : "Dashboard" },
+            { href: "#energy", label: lang === "fa" ? "داده‌ها" : "Data" },
+            { href: "#oee", label: lang === "fa" ? "عملیات OEE" : "Operations" },
+            { href: "#reports", label: lang === "fa" ? "گزارش‌ها" : "Reports" },
+            { href: "#contact", label: lang === "fa" ? "ارتباط" : "Contact" },
           ].map((item) => (
             <a
               key={item.href}
@@ -389,14 +390,6 @@ function App() {
         <header className="sticky top-0 z-20 backdrop-blur-md">
           <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-slate-900/80 px-4 py-4 lg:flex-nowrap lg:px-8">
             <div className="flex min-w-0 flex-wrap items-center gap-3">
-              <button
-                className="rounded-xl border border-white/10 p-2 text-slate-200 hover:bg-white/5 lg:hidden"
-                onClick={() => setSidebarOpen(true)}
-                aria-expanded={sidebarOpen}
-                aria-label="Open navigation"
-              >
-                <FiMenu size={18} />
-              </button>
               <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-xs text-slate-300">
                 <FiActivity />
                 <span>{t.energyHub}</span>
@@ -407,6 +400,21 @@ function App() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+              <button
+                className="flex items-center justify-center rounded-xl border border-white/10 p-2 text-slate-200 hover:bg-white/5 lg:hidden"
+                onClick={() => setSidebarOpen(true)}
+                aria-expanded={sidebarOpen}
+                aria-label="Open navigation"
+              >
+                <FiMenu size={18} />
+              </button>
+              <button
+                className="hidden items-center justify-center rounded-xl border border-white/10 p-2 text-slate-200 hover:bg-white/5 lg:flex"
+                onClick={() => setSidebarPinned((prev) => !prev)}
+                aria-label={lang === "fa" ? "تغییر نمایش منو" : "Toggle sidebar"}
+              >
+                <FiMenu size={18} />
+              </button>
               <button
                 onClick={toggleLanguage}
                 className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:border-white/20 hover:bg-white/10"
@@ -573,40 +581,42 @@ function App() {
                   ))}
                 </div>
               </div>
-              <div className="mt-4 h-[260px] sm:h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={energyData}>
-                    <defs>
-                      <linearGradient id="energyGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis
-                      dataKey={lang === "fa" ? "labelFa" : "labelEn"}
-                      tick={{ fill: "#cbd5e1", fontSize: 12 }}
-                    />
-                    <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
-                      labelStyle={{ color: "#e2e8f0" }}
-                    />
-                    <Legend />
-                    {carriers.map((carrier) => (
-                      <Area
-                        key={carrier.key}
-                        type="monotone"
-                        dataKey={carrier.key}
-                        name={lang === "fa" ? carrier.label.fa : carrier.label.en}
-                        stroke={carrier.color}
-                        fill={carrier.color}
-                        fillOpacity={0.2}
-                        strokeWidth={2}
+              <div className="mt-4 h-[260px] sm:h-72 overflow-x-auto">
+                <div className="h-full min-w-[520px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={energyData}>
+                      <defs>
+                        <linearGradient id="energyGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis
+                        dataKey={lang === "fa" ? "labelFa" : "labelEn"}
+                        tick={{ fill: "#cbd5e1", fontSize: 12 }}
                       />
-                    ))}
-                  </AreaChart>
-                </ResponsiveContainer>
+                      <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+                        labelStyle={{ color: "#e2e8f0" }}
+                      />
+                      <Legend />
+                      {carriers.map((carrier) => (
+                        <Area
+                          key={carrier.key}
+                          type="monotone"
+                          dataKey={carrier.key}
+                          name={lang === "fa" ? carrier.label.fa : carrier.label.en}
+                          stroke={carrier.color}
+                          fill={carrier.color}
+                          fillOpacity={0.2}
+                          strokeWidth={2}
+                        />
+                      ))}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
             <div className="space-y-4 rounded-3xl glass p-5">
@@ -671,27 +681,29 @@ function App() {
                 <p className="text-sm font-semibold text-white">{t.energyByCarrier}</p>
                 <FiZap className="text-cyan-200" />
               </div>
-              <div className="h-[240px] sm:h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={aggregatedEnergy.totals}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="key" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
-                    <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
-                      labelFormatter={(label) =>
-                        lang === "fa"
-                          ? carriers.find((c) => c.key === label).label.fa
-                          : carriers.find((c) => c.key === label).label.en
-                      }
-                    />
-                    <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                      {aggregatedEnergy.totals.map((entry) => (
-                        <Cell key={entry.key} fill={carriers.find((c) => c.key === entry.key).color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="h-[240px] sm:h-64 overflow-x-auto">
+                <div className="h-full min-w-[420px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={aggregatedEnergy.totals}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis dataKey="key" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+                      <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+                        labelFormatter={(label) =>
+                          lang === "fa"
+                            ? carriers.find((c) => c.key === label).label.fa
+                            : carriers.find((c) => c.key === label).label.en
+                        }
+                      />
+                      <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                        {aggregatedEnergy.totals.map((entry) => (
+                          <Cell key={entry.key} fill={carriers.find((c) => c.key === entry.key).color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
 
@@ -700,24 +712,26 @@ function App() {
                 <p className="text-sm font-semibold text-white">{t.energyCost}</p>
                 <FiTrendingUp className="text-emerald-200" />
               </div>
-              <div className="h-[240px] sm:h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={costBreakdown}
-                      dataKey="cost"
-                      nameKey="key"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={4}
-                    >
-                      {costBreakdown.map((entry) => (
-                        <Cell key={entry.key} fill={carriers.find((c) => c.key === entry.key).color} />
-                      ))}
-                    </Pie>
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="h-[240px] sm:h-64 overflow-x-auto">
+                <div className="h-full min-w-[360px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={costBreakdown}
+                        dataKey="cost"
+                        nameKey="key"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={4}
+                      >
+                        {costBreakdown.map((entry) => (
+                          <Cell key={entry.key} fill={carriers.find((c) => c.key === entry.key).color} />
+                        ))}
+                      </Pie>
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
               <p className="text-center text-xs text-slate-400">
                 {lang === "fa" ? "تقسیم هزینه حامل‌ها در دوره انتخابی" : "Carrier spend split for selected period"}
@@ -776,25 +790,27 @@ function App() {
                   ))}
                 </div>
               </div>
-              <div className="mt-4 h-[260px] sm:h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={oeeTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis
-                      dataKey={lang === "fa" ? "labelFa" : "labelEn"}
-                      tick={{ fill: "#cbd5e1", fontSize: 12 }}
-                    />
-                    <YAxis domain={[70, 100]} tick={{ fill: "#cbd5e1", fontSize: 12 }} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
-                      labelStyle={{ color: "#e2e8f0" }}
-                    />
-                    <Legend />
-                    <Line type="monotone" dataKey="lineA" name={lang === "fa" ? "خط A" : "Line A"} stroke="#22d3ee" strokeWidth={2} />
-                    <Line type="monotone" dataKey="lineB" name={lang === "fa" ? "خط B" : "Line B"} stroke="#a855f7" strokeWidth={2} />
-                    <Line type="monotone" dataKey="lineC" name={lang === "fa" ? "خط C" : "Line C"} stroke="#f97316" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
+              <div className="mt-4 h-[260px] sm:h-72 overflow-x-auto">
+                <div className="h-full min-w-[520px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={oeeTrendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis
+                        dataKey={lang === "fa" ? "labelFa" : "labelEn"}
+                        tick={{ fill: "#cbd5e1", fontSize: 12 }}
+                      />
+                      <YAxis domain={[70, 100]} tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+                        labelStyle={{ color: "#e2e8f0" }}
+                      />
+                      <Legend />
+                      <Line type="monotone" dataKey="lineA" name={lang === "fa" ? "خط A" : "Line A"} stroke="#22d3ee" strokeWidth={2} />
+                      <Line type="monotone" dataKey="lineB" name={lang === "fa" ? "خط B" : "Line B"} stroke="#a855f7" strokeWidth={2} />
+                      <Line type="monotone" dataKey="lineC" name={lang === "fa" ? "خط C" : "Line C"} stroke="#f97316" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
             <div className="space-y-4 rounded-3xl glass p-5">
@@ -844,22 +860,24 @@ function App() {
                 <p className="text-sm font-semibold text-white">{t.downtimeReasons}</p>
                 <FiAlertTriangle className="text-amber-200" />
               </div>
-              <div className="h-[220px] sm:h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={downtimeReasons}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis
-                      dataKey={lang === "fa" ? "reasonFa" : "reasonEn"}
-                      tick={{ fill: "#cbd5e1", fontSize: 12 }}
-                    />
-                    <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
-                      labelStyle={{ color: "#e2e8f0" }}
-                    />
-                    <Bar dataKey="minutes" fill="#22d3ee" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="h-[220px] sm:h-64 overflow-x-auto">
+                <div className="h-full min-w-[460px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={downtimeReasons}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis
+                        dataKey={lang === "fa" ? "reasonFa" : "reasonEn"}
+                        tick={{ fill: "#cbd5e1", fontSize: 12 }}
+                      />
+                      <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+                        labelStyle={{ color: "#e2e8f0" }}
+                      />
+                      <Bar dataKey="minutes" fill="#22d3ee" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
 
@@ -868,29 +886,31 @@ function App() {
                 <p className="text-sm font-semibold text-white">{t.scatterTitle}</p>
                 <FiActivity className="text-emerald-200" />
               </div>
-              <div className="h-[220px] sm:h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ScatterChart>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis type="number" dataKey="freq" name="Frequency" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
-                    <YAxis type="number" dataKey="minutes" name="Minutes" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
-                    <Tooltip
-                      cursor={{ strokeDasharray: "3 3" }}
-                      contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
-                      labelStyle={{ color: "#e2e8f0" }}
-                      formatter={(value, _name, props) => {
-                        const payload = props?.payload?.payload;
-                        const label = payload
-                          ? lang === "fa"
-                            ? payload.reasonFa
-                            : payload.reasonEn
-                          : "";
-                        return [value, label];
-                      }}
-                    />
-                    <Scatter data={downtimeScatter} fill="#a855f7" />
-                  </ScatterChart>
-                </ResponsiveContainer>
+              <div className="h-[220px] sm:h-64 overflow-x-auto">
+                <div className="h-full min-w-[460px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ScatterChart>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis type="number" dataKey="freq" name="Frequency" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+                      <YAxis type="number" dataKey="minutes" name="Minutes" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+                      <Tooltip
+                        cursor={{ strokeDasharray: "3 3" }}
+                        contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+                        labelStyle={{ color: "#e2e8f0" }}
+                        formatter={(value, _name, props) => {
+                          const payload = props?.payload?.payload;
+                          const label = payload
+                            ? lang === "fa"
+                              ? payload.reasonFa
+                              : payload.reasonEn
+                            : "";
+                          return [value, label];
+                        }}
+                      />
+                      <Scatter data={downtimeScatter} fill="#a855f7" />
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
 
