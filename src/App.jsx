@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -164,7 +164,7 @@ const computeOee = (availability, performance, quality) =>
   Number(((availability * performance * quality) / 10000).toFixed(1));
 
 const StatPill = ({ icon: Icon, title, value, accent }) => (
-  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl glass p-4">
+  <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-2xl glass p-4">
     <div className="flex items-center gap-3">
       <span
         className="flex h-11 w-11 items-center justify-center rounded-full"
@@ -310,13 +310,22 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [sidebarOpen]);
+
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
     <div className="flex min-h-screen text-slate-100">
       <div
         className={`fixed inset-0 z-20 bg-slate-950/50 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
           sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
-        onClick={() => setSidebarOpen(false)}
+        onClick={closeSidebar}
         aria-hidden={!sidebarOpen}
       />
       <aside
@@ -336,7 +345,7 @@ function App() {
           </div>
           <button
             className="rounded-xl border border-white/10 p-2 text-slate-300 hover:bg-white/5 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
+            onClick={closeSidebar}
             aria-label="Close navigation"
           >
             ✕
@@ -354,6 +363,7 @@ function App() {
               key={item.href}
               href={item.href}
               className="flex items-center justify-between rounded-xl px-3 py-2 text-slate-200 transition hover:bg-white/5"
+              onClick={closeSidebar}
             >
               <span>{item.label}</span>
               <span className="text-xs text-slate-500">↗</span>
@@ -375,13 +385,14 @@ function App() {
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col lg:ml-72">
+      <div className="flex min-w-0 flex-1 flex-col lg:ml-72">
         <header className="sticky top-0 z-20 backdrop-blur-md">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-slate-900/80 px-4 py-4 lg:flex-nowrap lg:px-8">
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-slate-900/80 px-4 py-4 lg:flex-nowrap lg:px-8">
+            <div className="flex min-w-0 flex-wrap items-center gap-3">
               <button
                 className="rounded-xl border border-white/10 p-2 text-slate-200 hover:bg-white/5 lg:hidden"
                 onClick={() => setSidebarOpen(true)}
+                aria-expanded={sidebarOpen}
                 aria-label="Open navigation"
               >
                 <FiMenu size={18} />
@@ -417,7 +428,7 @@ function App() {
         </header>
 
         <main className="flex-1 pb-10 pt-6">
-          <div className="mx-auto flex max-w-6xl flex-col space-y-8 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-col space-y-8 px-4 sm:px-6 lg:px-8">
             <section id="overview" className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-6 shadow-2xl ring-1 ring-white/5">
               <div className="flex items-start justify-between gap-3">
