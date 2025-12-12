@@ -164,7 +164,7 @@ const computeOee = (availability, performance, quality) =>
   Number(((availability * performance * quality) / 10000).toFixed(1));
 
 const StatPill = ({ icon: Icon, title, value, accent }) => (
-  <div className="flex items-center justify-between rounded-2xl glass p-4">
+  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl glass p-4">
     <div className="flex items-center gap-3">
       <span
         className="flex h-11 w-11 items-center justify-center rounded-full"
@@ -177,7 +177,7 @@ const StatPill = ({ icon: Icon, title, value, accent }) => (
         <p className="text-lg font-semibold text-white">{value}</p>
       </div>
     </div>
-    <div className="h-9 w-9 rounded-full border border-white/10 bg-white/5" />
+    <div className="h-9 w-9 shrink-0 rounded-full border border-white/10 bg-white/5" />
   </div>
 );
 
@@ -312,10 +312,17 @@ function App() {
 
   return (
     <div className="flex min-h-screen text-slate-100">
+      <div
+        className={`fixed inset-0 z-20 bg-slate-950/50 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
+          sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden={!sidebarOpen}
+      />
       <aside
         className={`glass fixed inset-y-0 z-30 w-72 transform border-r border-white/10 bg-slate-900/80 p-6 transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
+        } max-h-screen overflow-y-auto`}
       >
         <div className="mb-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -370,8 +377,8 @@ function App() {
 
       <div className="flex flex-1 flex-col lg:ml-72">
         <header className="sticky top-0 z-20 backdrop-blur-md">
-          <div className="flex items-center justify-between border-b border-white/10 bg-slate-900/80 px-4 py-4 lg:px-8">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-slate-900/80 px-4 py-4 lg:flex-nowrap lg:px-8">
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 className="rounded-xl border border-white/10 p-2 text-slate-200 hover:bg-white/5 lg:hidden"
                 onClick={() => setSidebarOpen(true)}
@@ -388,7 +395,7 @@ function App() {
                 <span>{t.languageName}</span>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 sm:justify-end">
               <button
                 onClick={toggleLanguage}
                 className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:border-white/20 hover:bg-white/10"
@@ -409,8 +416,9 @@ function App() {
           </div>
         </header>
 
-        <main className="flex-1 space-y-8 px-4 pb-10 pt-6 lg:px-8">
-          <section id="overview" className="grid gap-6 lg:grid-cols-3">
+        <main className="flex-1 pb-10 pt-6">
+          <div className="mx-auto flex max-w-6xl flex-col space-y-8 px-4 sm:px-6 lg:px-8">
+            <section id="overview" className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-6 shadow-2xl ring-1 ring-white/5">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -443,7 +451,7 @@ function App() {
                   const data = aggregatedEnergy.totals.find((item) => item.key === carrier.key);
                   return (
                     <div key={carrier.key} className="glass rounded-2xl p-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-3">
                         <p className="text-sm text-slate-300">
                           {lang === "fa" ? carrier.label.fa : carrier.label.en}
                         </p>
@@ -464,7 +472,7 @@ function App() {
               </div>
             </div>
             <div className="space-y-4 rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">{t.realtimeAlerts}</p>
                 <span className="rounded-full bg-rose-500/20 px-3 py-1 text-xs text-rose-100">
                   {alerts.length || 1}
@@ -499,14 +507,14 @@ function App() {
                 )}
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{t.targets}</p>
                   <FiTarget className="text-teal-200" />
                 </div>
                 <div className="mt-3 space-y-3">
                   {carriers.map((carrier) => (
                     <div key={carrier.key}>
-                      <div className="flex items-center justify-between text-xs text-slate-300">
+                      <div className="flex items-center justify-between gap-2 text-xs text-slate-300">
                         <span>{lang === "fa" ? carrier.label.fa : carrier.label.en}</span>
                         <span className="text-teal-200">{energyTargets[carrier.key]}%</span>
                       </div>
@@ -535,12 +543,12 @@ function App() {
 
           <section id="energy" className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{t.energyDashboard}</p>
                   <p className="text-lg font-semibold text-white">{t.usageTrends}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {["week", "month", "year"].map((tf) => (
                     <button
                       key={tf}
@@ -554,7 +562,7 @@ function App() {
                   ))}
                 </div>
               </div>
-              <div className="mt-4 h-72">
+              <div className="mt-4 h-[260px] sm:h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={energyData}>
                     <defs>
@@ -591,7 +599,7 @@ function App() {
               </div>
             </div>
             <div className="space-y-4 rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">{t.energyCostBreakdown}</p>
                 <FiTrendingUp className="text-teal-200" />
               </div>
@@ -601,7 +609,7 @@ function App() {
                   const percent = ((item.cost / aggregatedEnergy.cost) * 100).toFixed(1);
                   return (
                     <div key={item.key} className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between gap-3 text-sm">
                         <div className="flex items-center gap-2">
                           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: carrier.color }} />
                           <span>{lang === "fa" ? carrier.label.fa : carrier.label.en}</span>
@@ -626,7 +634,7 @@ function App() {
                 <div className="mt-3 space-y-3">
                   {energyGoalRows.map((row) => (
                     <div key={row.id} className="rounded-xl bg-slate-900/50 p-3">
-                      <div className="flex items-center justify-between text-sm text-white">
+                      <div className="flex items-center justify-between gap-3 text-sm text-white">
                         <span>{lang === "fa" ? row.lineFa : row.lineEn}</span>
                         <span className="text-xs text-teal-200">{row.achieved}%</span>
                       </div>
@@ -648,11 +656,11 @@ function App() {
 
           <section className="grid gap-6 lg:grid-cols-3">
             <div className="space-y-4 rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">{t.energyByCarrier}</p>
                 <FiZap className="text-cyan-200" />
               </div>
-              <div className="h-64">
+              <div className="h-[240px] sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={aggregatedEnergy.totals}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -677,11 +685,11 @@ function App() {
             </div>
 
             <div className="rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">{t.energyCost}</p>
                 <FiTrendingUp className="text-emerald-200" />
               </div>
-              <div className="h-64">
+              <div className="h-[240px] sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -706,7 +714,7 @@ function App() {
             </div>
 
             <div className="rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">{t.reductionGoals}</p>
                 <FiTarget className="text-indigo-200" />
               </div>
@@ -719,7 +727,7 @@ function App() {
                   const progress = Math.min(100, (achieved / energyTargets[carrier.key]) * 100);
                   return (
                     <div key={carrier.key} className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between gap-3 text-sm">
                         <span>{lang === "fa" ? carrier.label.fa : carrier.label.en}</span>
                         <span className="text-xs text-teal-200">{energyTargets[carrier.key]}%</span>
                       </div>
@@ -741,12 +749,12 @@ function App() {
 
           <section id="oee" className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-400">OEE</p>
                   <p className="text-lg font-semibold text-white">{t.oeeByLine}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {oeeLines.map((line) => (
                     <span
                       key={line.id}
@@ -757,7 +765,7 @@ function App() {
                   ))}
                 </div>
               </div>
-              <div className="mt-4 h-72">
+              <div className="mt-4 h-[260px] sm:h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={oeeTrendData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -779,14 +787,14 @@ function App() {
               </div>
             </div>
             <div className="space-y-4 rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">{t.compareTarget}</p>
                 <FiTarget className="text-teal-200" />
               </div>
               <div className="space-y-3">
                 {oeeLines.map((line) => (
                   <div key={line.id} className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <div className="flex items-center justify-between text-sm text-white">
+                    <div className="flex items-center justify-between gap-3 text-sm text-white">
                       <span>{lang === "fa" ? line.nameFa : line.nameEn}</span>
                       <span className="text-xs text-teal-200">{line.oee}%</span>
                     </div>
@@ -796,7 +804,7 @@ function App() {
                         style={{ width: `${Math.min(100, (line.oee / oeeTargets[line.id]) * 100)}%` }}
                       />
                     </div>
-                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
+                    <div className="mt-2 flex flex-col gap-1 text-[11px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
                       <span>{lang === "fa" ? `هدف ${oeeTargets[line.id]}%` : `Target ${oeeTargets[line.id]}%`}</span>
                       <span className="text-slate-200">
                         {lang === "fa" ? "شیفت‌ها" : "Shifts"}:{" "}
@@ -821,11 +829,11 @@ function App() {
 
           <section className="grid gap-6 lg:grid-cols-3">
             <div className="rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">{t.downtimeReasons}</p>
                 <FiAlertTriangle className="text-amber-200" />
               </div>
-              <div className="h-64">
+              <div className="h-[220px] sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={downtimeReasons}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -845,11 +853,11 @@ function App() {
             </div>
 
             <div className="rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">{t.scatterTitle}</p>
                 <FiActivity className="text-emerald-200" />
               </div>
-              <div className="h-64">
+              <div className="h-[220px] sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <ScatterChart>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -876,18 +884,18 @@ function App() {
             </div>
 
             <div className="rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">{t.targets}</p>
                 <FiTarget className="text-indigo-200" />
               </div>
               <div className="mt-3 space-y-3">
                 {lineShiftData.map((line) => (
                   <div key={line.id} className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <div className="flex items-center justify-between text-sm text-white">
+                    <div className="flex items-center justify-between gap-3 text-sm text-white">
                       <span>{lang === "fa" ? line.nameFa : line.nameEn}</span>
                       <span className="text-xs text-teal-200">{computeOee(line.availability, line.performance, line.quality)}%</span>
                     </div>
-                    <div className="mt-2 grid grid-cols-3 gap-2 text-[11px] text-slate-300">
+                    <div className="mt-2 grid grid-cols-1 gap-2 text-[11px] text-slate-300 sm:grid-cols-3">
                       <span>{t.availability}: {line.availability}%</span>
                       <span>{t.performance}: {line.performance}%</span>
                       <span>{t.quality}: {line.quality}%</span>
@@ -905,7 +913,7 @@ function App() {
 
           <section id="reports" className="grid gap-6 lg:grid-cols-3">
             <div className="rounded-3xl glass p-5 lg:col-span-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">{t.reports}</p>
                 <div className="flex items-center gap-2">
                   <FiDownload className="text-slate-200" />
@@ -913,7 +921,7 @@ function App() {
                 </div>
               </div>
               <div className="mt-4 overflow-auto rounded-2xl border border-white/10 bg-white/5">
-                <table className="min-w-full text-sm">
+                <table className="min-w-full text-xs sm:text-sm">
                   <thead className="bg-white/5 text-left text-slate-400">
                     <tr>
                       <th className="px-4 py-3">{lang === "fa" ? "دوره" : "Period"}</th>
@@ -938,7 +946,7 @@ function App() {
               </div>
             </div>
             <div className="space-y-3 rounded-3xl glass p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">{lang === "fa" ? "احراز هویت پایه" : "Basic Authentication"}</p>
                 <FiLock className="text-slate-200" />
               </div>
@@ -958,7 +966,7 @@ function App() {
                 </button>
               </form>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                <div className="flex items-center justify-between text-sm text-white">
+                <div className="flex items-center justify-between gap-3 text-sm text-white">
                   <span>{t.exportData}</span>
                   <span className={`text-xs ${isAuthed ? "text-teal-200" : "text-rose-200"}`}>
                     {isAuthed ? (lang === "fa" ? "فعال" : "Ready") : lang === "fa" ? "قفل" : "Locked"}
@@ -993,53 +1001,54 @@ function App() {
             </div>
           </section>
 
-          <section id="contact" className="grid gap-6 lg:grid-cols-2">
-            <div className="space-y-3 rounded-3xl glass p-6">
-              <p className="text-sm font-semibold text-white">{t.contactTitle}</p>
-              <p className="text-sm text-slate-300">{t.companyDesc}</p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <p className="text-xs text-slate-400">Mohammadreza Yousefi</p>
-                  <p className="text-sm font-semibold text-white">+98 910 296 8816</p>
+            <section id="contact" className="grid gap-6 lg:grid-cols-2">
+              <div className="space-y-3 rounded-3xl glass p-6">
+                <p className="text-sm font-semibold text-white">{t.contactTitle}</p>
+                <p className="text-sm text-slate-300">{t.companyDesc}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-xs text-slate-400">Mohammadreza Yousefi</p>
+                    <p className="text-sm font-semibold text-white">+98 910 296 8816</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-xs text-slate-400">Masoud Bakhshi</p>
+                    <p className="text-sm font-semibold text-white">۰۹۱۲۴۷۳۳۲۳۴</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-xs text-slate-400">Mohammad Bakhshi</p>
+                    <p className="text-sm font-semibold text-white">۰۹۱۲۳۳۱۱۹۲۱</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-xs text-slate-400">Email</p>
+                    <p className="text-sm font-semibold text-white">Devcodebase.dev@gmail.com</p>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <p className="text-xs text-slate-400">Masoud Bakhshi</p>
-                  <p className="text-sm font-semibold text-white">۰۹۱۲۴۷۳۳۲۳۴</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <p className="text-xs text-slate-400">Mohammad Bakhshi</p>
-                  <p className="text-sm font-semibold text-white">۰۹۱۲۳۳۱۱۹۲۱</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <p className="text-xs text-slate-400">Email</p>
-                  <p className="text-sm font-semibold text-white">Devcodebase.dev@gmail.com</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200">
-                <FiGlobe />
-                <span>شرکت شبکه هوشمند ابتکار ویستا</span>
-              </div>
-            </div>
-            <div className="rounded-3xl bg-gradient-to-br from-royal-500/50 via-teal-500/40 to-slate-900 p-6 text-white shadow-2xl">
-              <p className="text-sm uppercase tracking-[0.2em] text-white/70">{t.energyHub}</p>
-              <h3 className="mt-2 text-2xl font-bold">{lang === "fa" ? "گزارش‌های هوشمند" : "Intelligent reports"}</h3>
-              <p className="mt-2 text-sm text-white/80">
-                {lang === "fa"
-                  ? "داده‌های انرژی، اهداف OEE، هشدارهای لحظه‌ای و خروجی CSV تنها بخشی از امکانات نسخه نمایشی هستند."
-                  : "Energy data, OEE targets, live alerts and CSV export are bundled in this polished demo."}
-              </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl bg-white/10 p-3">
-                  <p className="text-xs text-white/70">{lang === "fa" ? "محیط دو زبانه" : "Bilingual UI"}</p>
-                  <p className="text-lg font-semibold">RTL / LTR</p>
-                </div>
-                <div className="rounded-2xl bg-white/10 p-3">
-                  <p className="text-xs text-white/70">{lang === "fa" ? "گزارش گیری" : "Reporting"}</p>
-                  <p className="text-lg font-semibold">CSV & KPIs</p>
+                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200">
+                  <FiGlobe />
+                  <span>شرکت شبکه هوشمند ابتکار ویستا</span>
                 </div>
               </div>
-            </div>
-          </section>
+              <div className="rounded-3xl bg-gradient-to-br from-royal-500/50 via-teal-500/40 to-slate-900 p-6 text-white shadow-2xl">
+                <p className="text-sm uppercase tracking-[0.2em] text-white/70">{t.energyHub}</p>
+                <h3 className="mt-2 text-2xl font-bold">{lang === "fa" ? "گزارش‌های هوشمند" : "Intelligent reports"}</h3>
+                <p className="mt-2 text-sm text-white/80">
+                  {lang === "fa"
+                    ? "داده‌های انرژی، اهداف OEE، هشدارهای لحظه‌ای و خروجی CSV تنها بخشی از امکانات نسخه نمایشی هستند."
+                    : "Energy data, OEE targets, live alerts and CSV export are bundled in this polished demo."}
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-white/10 p-3">
+                    <p className="text-xs text-white/70">{lang === "fa" ? "محیط دو زبانه" : "Bilingual UI"}</p>
+                    <p className="text-lg font-semibold">RTL / LTR</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 p-3">
+                    <p className="text-xs text-white/70">{lang === "fa" ? "گزارش گیری" : "Reporting"}</p>
+                    <p className="text-lg font-semibold">CSV & KPIs</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
         </main>
       </div>
     </div>
