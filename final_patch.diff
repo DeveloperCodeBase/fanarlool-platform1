@@ -1,0 +1,1175 @@
+diff --git a/src/App.jsx b/src/App.jsx
+index 2dceed5..e1ee4f0 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -323,16 +323,14 @@ function App() {
+   return (
+     <div className="flex min-h-screen text-slate-100">
+       <div
+-        className={`fixed inset-0 z-20 bg-slate-950/50 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
+-          sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
+-        }`}
++        className={`fixed inset-0 z-20 bg-slate-950/50 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
++          }`}
+         onClick={closeSidebar}
+         aria-hidden={!sidebarOpen}
+       />
+       <aside
+-        className={`glass fixed inset-y-0 z-30 w-72 transform border-r border-white/10 bg-slate-900/80 p-6 transition-transform duration-300 ease-in-out ${
+-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+-        } ${sidebarPinned ? "lg:translate-x-0" : "lg:-translate-x-full"} max-h-screen overflow-y-auto`}
++        className={`glass fixed inset-y-0 z-30 w-72 transform border-r rtl:border-r-0 rtl:border-l border-white/10 bg-slate-900/80 p-6 transition-transform duration-300 ease-in-out ltr:left-0 rtl:right-0 ${sidebarOpen ? "translate-x-0" : "ltr:-translate-x-full rtl:translate-x-full"
++          } ${sidebarPinned ? "lg:translate-x-0" : "lg:ltr:-translate-x-full lg:rtl:translate-x-full"} max-h-screen overflow-y-auto`}
+       >
+         <div className="mb-10 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+@@ -367,7 +365,7 @@ function App() {
+               onClick={closeSidebar}
+             >
+               <span>{item.label}</span>
+-              <span className="text-xs text-slate-500">↗</span>
++              <span className="text-xs text-slate-500 rtl:rotate-180">↗</span>
+             </a>
+           ))}
+         </nav>
+@@ -386,7 +384,7 @@ function App() {
+         </div>
+       </aside>
+ 
+-      <div className="flex min-w-0 flex-1 flex-col lg:ml-72">
++      <div className={`flex min-w-0 flex-1 flex-col transition-all duration-300 ${sidebarPinned ? 'ltr:lg:ml-72 rtl:lg:mr-72' : ''}`}>
+         <header className="sticky top-0 z-20 backdrop-blur-md">
+           <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-slate-900/80 px-4 py-4 lg:flex-nowrap lg:px-8">
+             <div className="flex min-w-0 flex-wrap items-center gap-3">
+@@ -438,599 +436,596 @@ function App() {
+         <main className="flex-1 pb-10 pt-6">
+           <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-col space-y-8 px-4 sm:px-6 lg:px-8">
+             <section id="overview" className="grid gap-6 lg:grid-cols-3">
+-            <div className="lg:col-span-2 space-y-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-6 shadow-2xl ring-1 ring-white/5">
+-              <div className="flex items-start justify-between gap-3">
+-                <div>
+-                  <p className="text-sm uppercase tracking-[0.2em] text-slate-400">{t.energyHub}</p>
+-                  <h1 className="mt-2 text-3xl font-bold text-white sm:text-4xl">{t.heroTitle}</h1>
+-                  <p className="mt-3 max-w-3xl text-sm text-slate-300 sm:text-base">{t.heroSubtitle}</p>
++              <div className="lg:col-span-2 space-y-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-6 shadow-2xl ring-1 ring-white/5">
++                <div className="flex items-start justify-between gap-3">
++                  <div>
++                    <p className="text-sm uppercase tracking-[0.2em] text-slate-400">{t.energyHub}</p>
++                    <h1 className="mt-2 text-3xl font-bold text-white sm:text-4xl">{t.heroTitle}</h1>
++                    <p className="mt-3 max-w-3xl text-sm text-slate-300 sm:text-base">{t.heroSubtitle}</p>
++                  </div>
++                  <div className="hidden rounded-2xl border border-white/5 bg-white/5 px-3 py-2 text-xs text-slate-200 sm:block">
++                    <p className="font-semibold">{lang === "fa" ? "پشتیبانی ۲۴/۷" : "24/7 Support"}</p>
++                    <p className="text-slate-400">{lang === "fa" ? "تماس مستقیم با تیم عملیاتی" : "Direct with ops team"}</p>
++                  </div>
+                 </div>
+-                <div className="hidden rounded-2xl border border-white/5 bg-white/5 px-3 py-2 text-xs text-slate-200 sm:block">
+-                  <p className="font-semibold">{lang === "fa" ? "پشتیبانی ۲۴/۷" : "24/7 Support"}</p>
+-                  <p className="text-slate-400">{lang === "fa" ? "تماس مستقیم با تیم عملیاتی" : "Direct with ops team"}</p>
++                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
++                  <StatPill
++                    icon={FiZap}
++                    title={t.totalEnergy}
++                    value={`${formatNumber(lang, aggregatedEnergy.totalKwh, { maximumFractionDigits: 0 })} kWh`}
++                    accent="#22d3ee"
++                  />
++                  <StatPill
++                    icon={FiTrendingUp}
++                    title={t.energyCost}
++                    value={`$${formatNumber(lang, aggregatedEnergy.cost, { maximumFractionDigits: 0 })}`}
++                    accent="#a855f7"
++                  />
++                  <StatPill icon={FiActivity} title={t.oeeScore} value={`${averageOee}%`} accent="#34d399" />
+                 </div>
+-              </div>
+-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+-                <StatPill
+-                  icon={FiZap}
+-                  title={t.totalEnergy}
+-                  value={`${formatNumber(lang, aggregatedEnergy.totalKwh, { maximumFractionDigits: 0 })} kWh`}
+-                  accent="#22d3ee"
+-                />
+-                <StatPill
+-                  icon={FiTrendingUp}
+-                  title={t.energyCost}
+-                  value={`$${formatNumber(lang, aggregatedEnergy.cost, { maximumFractionDigits: 0 })}`}
+-                  accent="#a855f7"
+-                />
+-                <StatPill icon={FiActivity} title={t.oeeScore} value={`${averageOee}%`} accent="#34d399" />
+-              </div>
+-              <div className="grid gap-4 md:grid-cols-3">
+-                {carriers.map((carrier) => {
+-                  const data = aggregatedEnergy.totals.find((item) => item.key === carrier.key);
+-                  return (
+-                    <div key={carrier.key} className="glass rounded-2xl p-4">
+-                      <div className="flex items-center justify-between gap-3">
+-                        <p className="text-sm text-slate-300">
+-                          {lang === "fa" ? carrier.label.fa : carrier.label.en}
++                <div className="grid gap-4 md:grid-cols-3">
++                  {carriers.map((carrier) => {
++                    const data = aggregatedEnergy.totals.find((item) => item.key === carrier.key);
++                    return (
++                      <div key={carrier.key} className="glass rounded-2xl p-4">
++                        <div className="flex items-center justify-between gap-3">
++                          <p className="text-sm text-slate-300">
++                            {lang === "fa" ? carrier.label.fa : carrier.label.en}
++                          </p>
++                          <span
++                            className="h-2 w-2 rounded-full"
++                            style={{ backgroundColor: carrier.color, boxShadow: `0 0 0 6px ${carrier.color}33` }}
++                          />
++                        </div>
++                        <p className="mt-2 text-2xl font-semibold text-white">
++                          {formatNumber(lang, data?.value || 0, { maximumFractionDigits: 0 })}
+                         </p>
+-                        <span
+-                          className="h-2 w-2 rounded-full"
+-                          style={{ backgroundColor: carrier.color, boxShadow: `0 0 0 6px ${carrier.color}33` }}
+-                        />
+-                      </div>
+-                      <p className="mt-2 text-2xl font-semibold text-white">
+-                        {formatNumber(lang, data?.value || 0, { maximumFractionDigits: 0 })}
+-                      </p>
+-                      <p className="text-xs text-slate-400">
+-                        {lang === "fa" ? "کیلووات ساعت معادل" : "kWh equivalent"}
+-                      </p>
+-                    </div>
+-                  );
+-                })}
+-              </div>
+-            </div>
+-            <div className="space-y-4 rounded-3xl glass p-5">
+-              <div className="flex items-center justify-between gap-3">
+-                <p className="text-sm font-semibold text-white">{t.realtimeAlerts}</p>
+-                <span className="rounded-full bg-rose-500/20 px-3 py-1 text-xs text-rose-100">
+-                  {alerts.length || 1}
+-                </span>
+-              </div>
+-              <div className="space-y-3">
+-                {(alerts.length ? alerts : [{ severity: "info", message: lang === "fa" ? "سیستم پایدار است" : "System stable" }]).map(
+-                  (alert, idx) => (
+-                    <div
+-                      key={idx}
+-                      className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm"
+-                    >
+-                      <span
+-                        className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${
+-                          alert.severity === "high"
+-                            ? "bg-rose-500/20 text-rose-200"
+-                            : alert.severity === "medium"
+-                            ? "bg-amber-500/20 text-amber-100"
+-                            : "bg-teal-500/20 text-teal-100"
+-                        }`}
+-                      >
+-                        {alert.severity === "high" ? <FiAlertTriangle /> : <FiActivity />}
+-                      </span>
+-                      <div>
+-                        <p className="font-semibold text-white">{alert.message}</p>
+                         <p className="text-xs text-slate-400">
+-                          {lang === "fa" ? "تحلیل خودکار آستانه‌ها" : "Auto threshold analysis"}
++                          {lang === "fa" ? "کیلووات ساعت معادل" : "kWh equivalent"}
+                         </p>
+                       </div>
+-                    </div>
+-                  )
+-                )}
++                    );
++                  })}
++                </div>
+               </div>
+-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
++              <div className="space-y-4 rounded-3xl glass p-5">
+                 <div className="flex items-center justify-between gap-3">
+-                  <p className="text-sm font-semibold text-white">{t.targets}</p>
+-                  <FiTarget className="text-teal-200" />
++                  <p className="text-sm font-semibold text-white">{t.realtimeAlerts}</p>
++                  <span className="rounded-full bg-rose-500/20 px-3 py-1 text-xs text-rose-100">
++                    {alerts.length || 1}
++                  </span>
+                 </div>
+-                <div className="mt-3 space-y-3">
+-                  {carriers.map((carrier) => (
+-                    <div key={carrier.key}>
+-                      <div className="flex items-center justify-between gap-2 text-xs text-slate-300">
+-                        <span>{lang === "fa" ? carrier.label.fa : carrier.label.en}</span>
+-                        <span className="text-teal-200">{energyTargets[carrier.key]}%</span>
++                <div className="space-y-3">
++                  {(alerts.length ? alerts : [{ severity: "info", message: lang === "fa" ? "سیستم پایدار است" : "System stable" }]).map(
++                    (alert, idx) => (
++                      <div
++                        key={idx}
++                        className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm"
++                      >
++                        <span
++                          className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${alert.severity === "high"
++                              ? "bg-rose-500/20 text-rose-200"
++                              : alert.severity === "medium"
++                                ? "bg-amber-500/20 text-amber-100"
++                                : "bg-teal-500/20 text-teal-100"
++                            }`}
++                        >
++                          {alert.severity === "high" ? <FiAlertTriangle /> : <FiActivity />}
++                        </span>
++                        <div>
++                          <p className="font-semibold text-white">{alert.message}</p>
++                          <p className="text-xs text-slate-400">
++                            {lang === "fa" ? "تحلیل خودکار آستانه‌ها" : "Auto threshold analysis"}
++                          </p>
++                        </div>
+                       </div>
+-                      <input
+-                        type="range"
+-                        min="5"
+-                        max="25"
+-                        step="1"
+-                        value={energyTargets[carrier.key]}
+-                        onChange={(e) =>
+-                          setEnergyTargets((prev) => ({ ...prev, [carrier.key]: Number(e.target.value) }))
+-                        }
+-                        className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-white/10"
+-                      />
+-                    </div>
+-                  ))}
+-                  <p className="text-[11px] text-slate-400">
+-                    {lang === "fa"
+-                      ? "اهداف کاهش مصرف برای محاسبات هشدار به‌کار می‌رود."
+-                      : "Targets feed alerting and forecast logic."}
+-                  </p>
++                    )
++                  )}
++                </div>
++                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
++                  <div className="flex items-center justify-between gap-3">
++                    <p className="text-sm font-semibold text-white">{t.targets}</p>
++                    <FiTarget className="text-teal-200" />
++                  </div>
++                  <div className="mt-3 space-y-3">
++                    {carriers.map((carrier) => (
++                      <div key={carrier.key}>
++                        <div className="flex items-center justify-between gap-2 text-xs text-slate-300">
++                          <span>{lang === "fa" ? carrier.label.fa : carrier.label.en}</span>
++                          <span className="text-teal-200">{energyTargets[carrier.key]}%</span>
++                        </div>
++                        <input
++                          type="range"
++                          min="5"
++                          max="25"
++                          step="1"
++                          value={energyTargets[carrier.key]}
++                          onChange={(e) =>
++                            setEnergyTargets((prev) => ({ ...prev, [carrier.key]: Number(e.target.value) }))
++                          }
++                          className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-white/10"
++                        />
++                      </div>
++                    ))}
++                    <p className="text-[11px] text-slate-400">
++                      {lang === "fa"
++                        ? "اهداف کاهش مصرف برای محاسبات هشدار به‌کار می‌رود."
++                        : "Targets feed alerting and forecast logic."}
++                    </p>
++                  </div>
+                 </div>
+               </div>
+-            </div>
+-          </section>
++            </section>
+ 
+-          <section id="energy" className="grid gap-6 lg:grid-cols-3">
+-            <div className="lg:col-span-2 rounded-3xl glass p-5">
+-              <div className="flex flex-wrap items-center justify-between gap-3">
+-                <div>
+-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{t.energyDashboard}</p>
+-                  <p className="text-lg font-semibold text-white">{t.usageTrends}</p>
+-                </div>
+-                <div className="flex flex-wrap items-center gap-2">
+-                  {["week", "month", "year"].map((tf) => (
+-                    <button
+-                      key={tf}
+-                      onClick={() => setTimeframe(tf)}
+-                      className={`rounded-full px-3 py-1 text-xs ${
+-                        timeframe === tf ? "bg-teal-500 text-white" : "bg-white/5 text-slate-300"
+-                      }`}
+-                    >
+-                      {t.timeframes[tf]}
+-                    </button>
+-                  ))}
++            <section id="energy" className="grid gap-6 lg:grid-cols-3">
++              <div className="lg:col-span-2 rounded-3xl glass p-5">
++                <div className="flex flex-wrap items-center justify-between gap-3">
++                  <div>
++                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{t.energyDashboard}</p>
++                    <p className="text-lg font-semibold text-white">{t.usageTrends}</p>
++                  </div>
++                  <div className="flex flex-wrap items-center gap-2">
++                    {["week", "month", "year"].map((tf) => (
++                      <button
++                        key={tf}
++                        onClick={() => setTimeframe(tf)}
++                        className={`rounded-full px-3 py-1 text-xs ${timeframe === tf ? "bg-teal-500 text-white" : "bg-white/5 text-slate-300"
++                          }`}
++                      >
++                        {t.timeframes[tf]}
++                      </button>
++                    ))}
++                  </div>
+                 </div>
+-              </div>
+-              <div className="mt-4 h-[260px] sm:h-72 overflow-x-auto">
+-                <div className="h-full min-w-[520px]">
+-                  <ResponsiveContainer width="100%" height="100%">
+-                    <AreaChart data={energyData}>
+-                      <defs>
+-                        <linearGradient id="energyGradient" x1="0" y1="0" x2="0" y2="1">
+-                          <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4} />
+-                          <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+-                        </linearGradient>
+-                      </defs>
+-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+-                      <XAxis
+-                        dataKey={lang === "fa" ? "labelFa" : "labelEn"}
+-                        tick={{ fill: "#cbd5e1", fontSize: 12 }}
+-                      />
+-                      <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+-                      <Tooltip
+-                        contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+-                        labelStyle={{ color: "#e2e8f0" }}
+-                      />
+-                      <Legend />
+-                      {carriers.map((carrier) => (
+-                        <Area
+-                          key={carrier.key}
+-                          type="monotone"
+-                          dataKey={carrier.key}
+-                          name={lang === "fa" ? carrier.label.fa : carrier.label.en}
+-                          stroke={carrier.color}
+-                          fill={carrier.color}
+-                          fillOpacity={0.2}
+-                          strokeWidth={2}
++                <div className="mt-4 h-[clamp(250px,30vh,350px)] overflow-x-auto">
++                  <div className="h-full w-full">
++                    <ResponsiveContainer width="100%" height="100%">
++                      <AreaChart data={energyData}>
++                        <defs>
++                          <linearGradient id="energyGradient" x1="0" y1="0" x2="0" y2="1">
++                            <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4} />
++                            <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
++                          </linearGradient>
++                        </defs>
++                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
++                        <XAxis
++                          dataKey={lang === "fa" ? "labelFa" : "labelEn"}
++                          tick={{ fill: "#cbd5e1", fontSize: 12 }}
+                         />
+-                      ))}
+-                    </AreaChart>
+-                  </ResponsiveContainer>
++                        <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
++                        <Tooltip
++                          contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
++                          labelStyle={{ color: "#e2e8f0" }}
++                        />
++                        <Legend />
++                        {carriers.map((carrier) => (
++                          <Area
++                            key={carrier.key}
++                            type="monotone"
++                            dataKey={carrier.key}
++                            name={lang === "fa" ? carrier.label.fa : carrier.label.en}
++                            stroke={carrier.color}
++                            fill={carrier.color}
++                            fillOpacity={0.2}
++                            strokeWidth={2}
++                          />
++                        ))}
++                      </AreaChart>
++                    </ResponsiveContainer>
++                  </div>
+                 </div>
+               </div>
+-            </div>
+-            <div className="space-y-4 rounded-3xl glass p-5">
+-              <div className="flex items-center justify-between gap-3">
+-                <p className="text-sm font-semibold text-white">{t.energyCostBreakdown}</p>
+-                <FiTrendingUp className="text-teal-200" />
+-              </div>
+-              <div className="space-y-3">
+-                {costBreakdown.map((item) => {
+-                  const carrier = carriers.find((c) => c.key === item.key);
+-                  const percent = ((item.cost / aggregatedEnergy.cost) * 100).toFixed(1);
+-                  return (
+-                    <div key={item.key} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+-                      <div className="flex items-center justify-between gap-3 text-sm">
+-                        <div className="flex items-center gap-2">
+-                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: carrier.color }} />
+-                          <span>{lang === "fa" ? carrier.label.fa : carrier.label.en}</span>
++              <div className="space-y-4 rounded-3xl glass p-5">
++                <div className="flex items-center justify-between gap-3">
++                  <p className="text-sm font-semibold text-white">{t.energyCostBreakdown}</p>
++                  <FiTrendingUp className="text-teal-200" />
++                </div>
++                <div className="space-y-3">
++                  {costBreakdown.map((item) => {
++                    const carrier = carriers.find((c) => c.key === item.key);
++                    const percent = ((item.cost / aggregatedEnergy.cost) * 100).toFixed(1);
++                    return (
++                      <div key={item.key} className="rounded-2xl border border-white/10 bg-white/5 p-3">
++                        <div className="flex items-center justify-between gap-3 text-sm">
++                          <div className="flex items-center gap-2">
++                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: carrier.color }} />
++                            <span>{lang === "fa" ? carrier.label.fa : carrier.label.en}</span>
++                          </div>
++                          <span className="text-slate-300">${formatNumber(lang, item.cost)}</span>
++                        </div>
++                        <div className="mt-2 h-2 rounded-full bg-white/10">
++                          <div
++                            className="h-full rounded-full"
++                            style={{ width: `${percent}%`, backgroundColor: carrier.color }}
++                          />
+                         </div>
+-                        <span className="text-slate-300">${formatNumber(lang, item.cost)}</span>
++                        <p className="mt-1 text-[11px] text-slate-400">
++                          {percent}% {lang === "fa" ? "از هزینه دوره" : "of this period spend"}
++                        </p>
+                       </div>
+-                      <div className="mt-2 h-2 rounded-full bg-white/10">
+-                        <div
+-                          className="h-full rounded-full"
+-                          style={{ width: `${percent}%`, backgroundColor: carrier.color }}
+-                        />
++                    );
++                  })}
++                </div>
++                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
++                  <p className="text-sm font-semibold text-white">{t.reductionGoals}</p>
++                  <div className="mt-3 space-y-3">
++                    {energyGoalRows.map((row) => (
++                      <div key={row.id} className="rounded-xl bg-slate-900/50 p-3">
++                        <div className="flex items-center justify-between gap-3 text-sm text-white">
++                          <span>{lang === "fa" ? row.lineFa : row.lineEn}</span>
++                          <span className="text-xs text-teal-200">{row.achieved}%</span>
++                        </div>
++                        <div className="mt-2 h-2 rounded-full bg-white/10">
++                          <div
++                            className="h-full rounded-full bg-gradient-to-r from-royal-500 to-teal-500"
++                            style={{ width: `${row.progress}%` }}
++                          />
++                        </div>
++                        <p className="mt-1 text-[11px] text-slate-400">
++                          {lang === "fa" ? `هدف ${row.target}%` : `Target ${row.target}%`}
++                        </p>
+                       </div>
+-                      <p className="mt-1 text-[11px] text-slate-400">
+-                        {percent}% {lang === "fa" ? "از هزینه دوره" : "of this period spend"}
+-                      </p>
+-                    </div>
+-                  );
+-                })}
++                    ))}
++                  </div>
++                </div>
+               </div>
+-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+-                <p className="text-sm font-semibold text-white">{t.reductionGoals}</p>
+-                <div className="mt-3 space-y-3">
+-                  {energyGoalRows.map((row) => (
+-                    <div key={row.id} className="rounded-xl bg-slate-900/50 p-3">
+-                      <div className="flex items-center justify-between gap-3 text-sm text-white">
+-                        <span>{lang === "fa" ? row.lineFa : row.lineEn}</span>
+-                        <span className="text-xs text-teal-200">{row.achieved}%</span>
+-                      </div>
+-                      <div className="mt-2 h-2 rounded-full bg-white/10">
+-                        <div
+-                          className="h-full rounded-full bg-gradient-to-r from-royal-500 to-teal-500"
+-                          style={{ width: `${row.progress}%` }}
++            </section>
++
++            <section className="grid gap-6 lg:grid-cols-3">
++              <div className="space-y-4 rounded-3xl glass p-5">
++                <div className="flex items-center justify-between gap-3">
++                  <p className="text-sm font-semibold text-white">{t.energyByCarrier}</p>
++                  <FiZap className="text-cyan-200" />
++                </div>
++                <div className="h-[clamp(250px,30vh,350px)] w-full">
++                  <div className="h-full w-full">
++                    <ResponsiveContainer width="100%" height="100%">
++                      <BarChart data={aggregatedEnergy.totals}>
++                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
++                        <XAxis dataKey="key" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
++                        <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
++                        <Tooltip
++                          contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
++                          labelFormatter={(label) =>
++                            lang === "fa"
++                              ? carriers.find((c) => c.key === label).label.fa
++                              : carriers.find((c) => c.key === label).label.en
++                          }
+                         />
+-                      </div>
+-                      <p className="mt-1 text-[11px] text-slate-400">
+-                        {lang === "fa" ? `هدف ${row.target}%` : `Target ${row.target}%`}
+-                      </p>
+-                    </div>
+-                  ))}
++                        <Bar dataKey="value" radius={[8, 8, 0, 0]}>
++                          {aggregatedEnergy.totals.map((entry) => (
++                            <Cell key={entry.key} fill={carriers.find((c) => c.key === entry.key).color} />
++                          ))}
++                        </Bar>
++                      </BarChart>
++                    </ResponsiveContainer>
++                  </div>
+                 </div>
+               </div>
+-            </div>
+-          </section>
+ 
+-          <section className="grid gap-6 lg:grid-cols-3">
+-            <div className="space-y-4 rounded-3xl glass p-5">
+-              <div className="flex items-center justify-between gap-3">
+-                <p className="text-sm font-semibold text-white">{t.energyByCarrier}</p>
+-                <FiZap className="text-cyan-200" />
+-              </div>
+-              <div className="h-[240px] sm:h-64 overflow-x-auto">
+-                <div className="h-full min-w-[420px]">
+-                  <ResponsiveContainer width="100%" height="100%">
+-                    <BarChart data={aggregatedEnergy.totals}>
+-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+-                      <XAxis dataKey="key" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+-                      <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+-                      <Tooltip
+-                        contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+-                        labelFormatter={(label) =>
+-                          lang === "fa"
+-                            ? carriers.find((c) => c.key === label).label.fa
+-                            : carriers.find((c) => c.key === label).label.en
+-                        }
+-                      />
+-                      <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+-                        {aggregatedEnergy.totals.map((entry) => (
+-                          <Cell key={entry.key} fill={carriers.find((c) => c.key === entry.key).color} />
+-                        ))}
+-                      </Bar>
+-                    </BarChart>
+-                  </ResponsiveContainer>
++              <div className="rounded-3xl glass p-5">
++                <div className="flex items-center justify-between gap-3">
++                  <p className="text-sm font-semibold text-white">{t.energyCost}</p>
++                  <FiTrendingUp className="text-emerald-200" />
+                 </div>
++                <div className="h-[clamp(250px,30vh,350px)] w-full">
++                  <div className="h-full w-full">
++                    <ResponsiveContainer width="100%" height="100%">
++                      <PieChart>
++                        <Pie
++                          data={costBreakdown}
++                          dataKey="cost"
++                          nameKey="key"
++                          innerRadius={60}
++                          outerRadius={90}
++                          paddingAngle={4}
++                        >
++                          {costBreakdown.map((entry) => (
++                            <Cell key={entry.key} fill={carriers.find((c) => c.key === entry.key).color} />
++                          ))}
++                        </Pie>
++                        <Legend />
++                      </PieChart>
++                    </ResponsiveContainer>
++                  </div>
++                </div>
++                <p className="text-center text-xs text-slate-400">
++                  {lang === "fa" ? "تقسیم هزینه حامل‌ها در دوره انتخابی" : "Carrier spend split for selected period"}
++                </p>
+               </div>
+-            </div>
+ 
+-            <div className="rounded-3xl glass p-5">
+-              <div className="flex items-center justify-between gap-3">
+-                <p className="text-sm font-semibold text-white">{t.energyCost}</p>
+-                <FiTrendingUp className="text-emerald-200" />
+-              </div>
+-              <div className="h-[240px] sm:h-64 overflow-x-auto">
+-                <div className="h-full min-w-[360px]">
+-                  <ResponsiveContainer width="100%" height="100%">
+-                    <PieChart>
+-                      <Pie
+-                        data={costBreakdown}
+-                        dataKey="cost"
+-                        nameKey="key"
+-                        innerRadius={60}
+-                        outerRadius={90}
+-                        paddingAngle={4}
+-                      >
+-                        {costBreakdown.map((entry) => (
+-                          <Cell key={entry.key} fill={carriers.find((c) => c.key === entry.key).color} />
+-                        ))}
+-                      </Pie>
+-                      <Legend />
+-                    </PieChart>
+-                  </ResponsiveContainer>
++              <div className="rounded-3xl glass p-5">
++                <div className="flex items-center justify-between gap-3">
++                  <p className="text-sm font-semibold text-white">{t.reductionGoals}</p>
++                  <FiTarget className="text-indigo-200" />
++                </div>
++                <div className="mt-4 space-y-3">
++                  {carriers.map((carrier) => {
++                    const achieved =
++                      ((baselineEnergy[carrier.key] - aggregatedEnergy.totals.find((c) => c.key === carrier.key).value) /
++                        baselineEnergy[carrier.key]) *
++                      100;
++                    const progress = Math.min(100, (achieved / energyTargets[carrier.key]) * 100);
++                    return (
++                      <div key={carrier.key} className="rounded-2xl border border-white/10 bg-white/5 p-3">
++                        <div className="flex items-center justify-between gap-3 text-sm">
++                          <span>{lang === "fa" ? carrier.label.fa : carrier.label.en}</span>
++                          <span className="text-xs text-teal-200">{energyTargets[carrier.key]}%</span>
++                        </div>
++                        <div className="mt-2 h-2 rounded-full bg-white/10">
++                          <div
++                            className="h-full rounded-full bg-gradient-to-r from-teal-500 to-royal-500"
++                            style={{ width: `${progress}%` }}
++                          />
++                        </div>
++                        <p className="mt-1 text-[11px] text-slate-400">
++                          {lang === "fa" ? `پیشرفت ${progress.toFixed(0)}%` : `Progress ${progress.toFixed(0)}%`}
++                        </p>
++                      </div>
++                    );
++                  })}
+                 </div>
+               </div>
+-              <p className="text-center text-xs text-slate-400">
+-                {lang === "fa" ? "تقسیم هزینه حامل‌ها در دوره انتخابی" : "Carrier spend split for selected period"}
+-              </p>
+-            </div>
++            </section>
+ 
+-            <div className="rounded-3xl glass p-5">
+-              <div className="flex items-center justify-between gap-3">
+-                <p className="text-sm font-semibold text-white">{t.reductionGoals}</p>
+-                <FiTarget className="text-indigo-200" />
++            <section id="oee" className="grid gap-6 lg:grid-cols-3">
++              <div className="lg:col-span-2 rounded-3xl glass p-5">
++                <div className="flex flex-wrap items-center justify-between gap-3">
++                  <div>
++                    <p className="text-xs uppercase tracking-[0.2em] text-slate-400">OEE</p>
++                    <p className="text-lg font-semibold text-white">{t.oeeByLine}</p>
++                  </div>
++                  <div className="flex flex-wrap items-center gap-2">
++                    {oeeLines.map((line) => (
++                      <span
++                        key={line.id}
++                        className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-300"
++                      >
++                        {lang === "fa" ? line.nameFa : line.nameEn}
++                      </span>
++                    ))}
++                  </div>
++                </div>
++                <div className="mt-4 h-[clamp(250px,30vh,350px)] overflow-x-auto">
++                  <div className="h-full w-full">
++                    <ResponsiveContainer width="100%" height="100%">
++                      <LineChart data={oeeTrendData}>
++                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
++                        <XAxis
++                          dataKey={lang === "fa" ? "labelFa" : "labelEn"}
++                          tick={{ fill: "#cbd5e1", fontSize: 12 }}
++                        />
++                        <YAxis domain={[70, 100]} tick={{ fill: "#cbd5e1", fontSize: 12 }} />
++                        <Tooltip
++                          contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
++                          labelStyle={{ color: "#e2e8f0" }}
++                        />
++                        <Legend />
++                        <Line type="monotone" dataKey="lineA" name={lang === "fa" ? "خط A" : "Line A"} stroke="#22d3ee" strokeWidth={2} />
++                        <Line type="monotone" dataKey="lineB" name={lang === "fa" ? "خط B" : "Line B"} stroke="#a855f7" strokeWidth={2} />
++                        <Line type="monotone" dataKey="lineC" name={lang === "fa" ? "خط C" : "Line C"} stroke="#f97316" strokeWidth={2} />
++                      </LineChart>
++                    </ResponsiveContainer>
++                  </div>
++                </div>
+               </div>
+-              <div className="mt-4 space-y-3">
+-                {carriers.map((carrier) => {
+-                  const achieved =
+-                    ((baselineEnergy[carrier.key] - aggregatedEnergy.totals.find((c) => c.key === carrier.key).value) /
+-                      baselineEnergy[carrier.key]) *
+-                    100;
+-                  const progress = Math.min(100, (achieved / energyTargets[carrier.key]) * 100);
+-                  return (
+-                    <div key={carrier.key} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+-                      <div className="flex items-center justify-between gap-3 text-sm">
+-                        <span>{lang === "fa" ? carrier.label.fa : carrier.label.en}</span>
+-                        <span className="text-xs text-teal-200">{energyTargets[carrier.key]}%</span>
++              <div className="space-y-4 rounded-3xl glass p-5">
++                <div className="flex items-center justify-between gap-3">
++                  <p className="text-sm font-semibold text-white">{t.compareTarget}</p>
++                  <FiTarget className="text-teal-200" />
++                </div>
++                <div className="space-y-3">
++                  {oeeLines.map((line) => (
++                    <div key={line.id} className="rounded-2xl border border-white/10 bg-white/5 p-3">
++                      <div className="flex items-center justify-between gap-3 text-sm text-white">
++                        <span>{lang === "fa" ? line.nameFa : line.nameEn}</span>
++                        <span className="text-xs text-teal-200">{line.oee}%</span>
+                       </div>
+                       <div className="mt-2 h-2 rounded-full bg-white/10">
+                         <div
+                           className="h-full rounded-full bg-gradient-to-r from-teal-500 to-royal-500"
+-                          style={{ width: `${progress}%` }}
++                          style={{ width: `${Math.min(100, (line.oee / oeeTargets[line.id]) * 100)}%` }}
+                         />
+                       </div>
+-                      <p className="mt-1 text-[11px] text-slate-400">
+-                        {lang === "fa" ? `پیشرفت ${progress.toFixed(0)}%` : `Progress ${progress.toFixed(0)}%`}
+-                      </p>
++                      <div className="mt-2 flex flex-col gap-1 text-[11px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
++                        <span>{lang === "fa" ? `هدف ${oeeTargets[line.id]}%` : `Target ${oeeTargets[line.id]}%`}</span>
++                        <span className="text-slate-200">
++                          {lang === "fa" ? "شیفت‌ها" : "Shifts"}:{" "}
++                          {line.shifts
++                            .map((shift) => `${lang === "fa" ? shift.nameFa : shift.nameEn} ${computeOee(shift.availability, shift.performance, shift.quality)}%`)
++                            .join(" | ")}
++                        </span>
++                      </div>
++                      <input
++                        type="range"
++                        min="80"
++                        max="98"
++                        value={oeeTargets[line.id]}
++                        onChange={(e) => setOeeTargets((prev) => ({ ...prev, [line.id]: Number(e.target.value) }))}
++                        className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-white/10"
++                      />
+                     </div>
+-                  );
+-                })}
+-              </div>
+-            </div>
+-          </section>
+-
+-          <section id="oee" className="grid gap-6 lg:grid-cols-3">
+-            <div className="lg:col-span-2 rounded-3xl glass p-5">
+-              <div className="flex flex-wrap items-center justify-between gap-3">
+-                <div>
+-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">OEE</p>
+-                  <p className="text-lg font-semibold text-white">{t.oeeByLine}</p>
+-                </div>
+-                <div className="flex flex-wrap items-center gap-2">
+-                  {oeeLines.map((line) => (
+-                    <span
+-                      key={line.id}
+-                      className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-300"
+-                    >
+-                      {lang === "fa" ? line.nameFa : line.nameEn}
+-                    </span>
+                   ))}
+                 </div>
+               </div>
+-              <div className="mt-4 h-[260px] sm:h-72 overflow-x-auto">
+-                <div className="h-full min-w-[520px]">
+-                  <ResponsiveContainer width="100%" height="100%">
+-                    <LineChart data={oeeTrendData}>
+-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+-                      <XAxis
+-                        dataKey={lang === "fa" ? "labelFa" : "labelEn"}
+-                        tick={{ fill: "#cbd5e1", fontSize: 12 }}
+-                      />
+-                      <YAxis domain={[70, 100]} tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+-                      <Tooltip
+-                        contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+-                        labelStyle={{ color: "#e2e8f0" }}
+-                      />
+-                      <Legend />
+-                      <Line type="monotone" dataKey="lineA" name={lang === "fa" ? "خط A" : "Line A"} stroke="#22d3ee" strokeWidth={2} />
+-                      <Line type="monotone" dataKey="lineB" name={lang === "fa" ? "خط B" : "Line B"} stroke="#a855f7" strokeWidth={2} />
+-                      <Line type="monotone" dataKey="lineC" name={lang === "fa" ? "خط C" : "Line C"} stroke="#f97316" strokeWidth={2} />
+-                    </LineChart>
+-                  </ResponsiveContainer>
++            </section>
++
++            <section className="grid gap-6 lg:grid-cols-3">
++              <div className="rounded-3xl glass p-5">
++                <div className="flex items-center justify-between gap-3">
++                  <p className="text-sm font-semibold text-white">{t.downtimeReasons}</p>
++                  <FiAlertTriangle className="text-amber-200" />
+                 </div>
+-              </div>
+-            </div>
+-            <div className="space-y-4 rounded-3xl glass p-5">
+-              <div className="flex items-center justify-between gap-3">
+-                <p className="text-sm font-semibold text-white">{t.compareTarget}</p>
+-                <FiTarget className="text-teal-200" />
+-              </div>
+-              <div className="space-y-3">
+-                {oeeLines.map((line) => (
+-                  <div key={line.id} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+-                    <div className="flex items-center justify-between gap-3 text-sm text-white">
+-                      <span>{lang === "fa" ? line.nameFa : line.nameEn}</span>
+-                      <span className="text-xs text-teal-200">{line.oee}%</span>
+-                    </div>
+-                    <div className="mt-2 h-2 rounded-full bg-white/10">
+-                      <div
+-                        className="h-full rounded-full bg-gradient-to-r from-teal-500 to-royal-500"
+-                        style={{ width: `${Math.min(100, (line.oee / oeeTargets[line.id]) * 100)}%` }}
+-                      />
+-                    </div>
+-                    <div className="mt-2 flex flex-col gap-1 text-[11px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+-                      <span>{lang === "fa" ? `هدف ${oeeTargets[line.id]}%` : `Target ${oeeTargets[line.id]}%`}</span>
+-                      <span className="text-slate-200">
+-                        {lang === "fa" ? "شیفت‌ها" : "Shifts"}:{" "}
+-                        {line.shifts
+-                          .map((shift) => `${lang === "fa" ? shift.nameFa : shift.nameEn} ${computeOee(shift.availability, shift.performance, shift.quality)}%`)
+-                          .join(" | ")}
+-                      </span>
+-                    </div>
+-                    <input
+-                      type="range"
+-                      min="80"
+-                      max="98"
+-                      value={oeeTargets[line.id]}
+-                      onChange={(e) => setOeeTargets((prev) => ({ ...prev, [line.id]: Number(e.target.value) }))}
+-                      className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-white/10"
+-                    />
++                <div className="h-[clamp(250px,30vh,350px)] overflow-x-auto">
++                  <div className="h-full w-full">
++                    <ResponsiveContainer width="100%" height="100%">
++                      <BarChart data={downtimeReasons}>
++                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
++                        <XAxis
++                          dataKey={lang === "fa" ? "reasonFa" : "reasonEn"}
++                          tick={{ fill: "#cbd5e1", fontSize: 12 }}
++                        />
++                        <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
++                        <Tooltip
++                          contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
++                          labelStyle={{ color: "#e2e8f0" }}
++                        />
++                        <Bar dataKey="minutes" fill="#22d3ee" radius={[8, 8, 0, 0]} />
++                      </BarChart>
++                    </ResponsiveContainer>
+                   </div>
+-                ))}
+-              </div>
+-            </div>
+-          </section>
+-
+-          <section className="grid gap-6 lg:grid-cols-3">
+-            <div className="rounded-3xl glass p-5">
+-              <div className="flex items-center justify-between gap-3">
+-                <p className="text-sm font-semibold text-white">{t.downtimeReasons}</p>
+-                <FiAlertTriangle className="text-amber-200" />
+-              </div>
+-              <div className="h-[220px] sm:h-64 overflow-x-auto">
+-                <div className="h-full min-w-[460px]">
+-                  <ResponsiveContainer width="100%" height="100%">
+-                    <BarChart data={downtimeReasons}>
+-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+-                      <XAxis
+-                        dataKey={lang === "fa" ? "reasonFa" : "reasonEn"}
+-                        tick={{ fill: "#cbd5e1", fontSize: 12 }}
+-                      />
+-                      <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+-                      <Tooltip
+-                        contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+-                        labelStyle={{ color: "#e2e8f0" }}
+-                      />
+-                      <Bar dataKey="minutes" fill="#22d3ee" radius={[8, 8, 0, 0]} />
+-                    </BarChart>
+-                  </ResponsiveContainer>
+                 </div>
+               </div>
+-            </div>
+ 
+-            <div className="rounded-3xl glass p-5">
+-              <div className="flex items-center justify-between gap-3">
+-                <p className="text-sm font-semibold text-white">{t.scatterTitle}</p>
+-                <FiActivity className="text-emerald-200" />
+-              </div>
+-              <div className="h-[220px] sm:h-64 overflow-x-auto">
+-                <div className="h-full min-w-[460px]">
+-                  <ResponsiveContainer width="100%" height="100%">
+-                    <ScatterChart>
+-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+-                      <XAxis type="number" dataKey="freq" name="Frequency" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+-                      <YAxis type="number" dataKey="minutes" name="Minutes" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
+-                      <Tooltip
+-                        cursor={{ strokeDasharray: "3 3" }}
+-                        contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+-                        labelStyle={{ color: "#e2e8f0" }}
+-                        formatter={(value, _name, props) => {
+-                          const payload = props?.payload?.payload;
+-                          const label = payload
+-                            ? lang === "fa"
+-                              ? payload.reasonFa
+-                              : payload.reasonEn
+-                            : "";
+-                          return [value, label];
+-                        }}
+-                      />
+-                      <Scatter data={downtimeScatter} fill="#a855f7" />
+-                    </ScatterChart>
+-                  </ResponsiveContainer>
++              <div className="rounded-3xl glass p-5">
++                <div className="flex items-center justify-between gap-3">
++                  <p className="text-sm font-semibold text-white">{t.scatterTitle}</p>
++                  <FiActivity className="text-emerald-200" />
++                </div>
++                <div className="h-[clamp(250px,30vh,350px)] overflow-x-auto">
++                  <div className="h-full w-full">
++                    <ResponsiveContainer width="100%" height="100%">
++                      <ScatterChart>
++                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
++                        <XAxis type="number" dataKey="freq" name="Frequency" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
++                        <YAxis type="number" dataKey="minutes" name="Minutes" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
++                        <Tooltip
++                          cursor={{ strokeDasharray: "3 3" }}
++                          contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
++                          labelStyle={{ color: "#e2e8f0" }}
++                          formatter={(value, _name, props) => {
++                            const payload = props?.payload?.payload;
++                            const label = payload
++                              ? lang === "fa"
++                                ? payload.reasonFa
++                                : payload.reasonEn
++                              : "";
++                            return [value, label];
++                          }}
++                        />
++                        <Scatter data={downtimeScatter} fill="#a855f7" />
++                      </ScatterChart>
++                    </ResponsiveContainer>
++                  </div>
+                 </div>
+               </div>
+-            </div>
+ 
+-            <div className="rounded-3xl glass p-5">
+-              <div className="flex items-center justify-between gap-3">
+-                <p className="text-sm font-semibold text-white">{t.targets}</p>
+-                <FiTarget className="text-indigo-200" />
+-              </div>
+-              <div className="mt-3 space-y-3">
+-                {lineShiftData.map((line) => (
+-                  <div key={line.id} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+-                    <div className="flex items-center justify-between gap-3 text-sm text-white">
+-                      <span>{lang === "fa" ? line.nameFa : line.nameEn}</span>
+-                      <span className="text-xs text-teal-200">{computeOee(line.availability, line.performance, line.quality)}%</span>
+-                    </div>
+-                    <div className="mt-2 grid grid-cols-1 gap-2 text-[11px] text-slate-300 sm:grid-cols-3">
+-                      <span>{t.availability}: {line.availability}%</span>
+-                      <span>{t.performance}: {line.performance}%</span>
+-                      <span>{t.quality}: {line.quality}%</span>
++              <div className="rounded-3xl glass p-5">
++                <div className="flex items-center justify-between gap-3">
++                  <p className="text-sm font-semibold text-white">{t.targets}</p>
++                  <FiTarget className="text-indigo-200" />
++                </div>
++                <div className="mt-3 space-y-3">
++                  {lineShiftData.map((line) => (
++                    <div key={line.id} className="rounded-2xl border border-white/10 bg-white/5 p-3">
++                      <div className="flex items-center justify-between gap-3 text-sm text-white">
++                        <span>{lang === "fa" ? line.nameFa : line.nameEn}</span>
++                        <span className="text-xs text-teal-200">{computeOee(line.availability, line.performance, line.quality)}%</span>
++                      </div>
++                      <div className="mt-2 grid grid-cols-1 gap-2 text-[11px] text-slate-300 sm:grid-cols-3">
++                        <span>{t.availability}: {line.availability}%</span>
++                        <span>{t.performance}: {line.performance}%</span>
++                        <span>{t.quality}: {line.quality}%</span>
++                      </div>
++                      <p className="mt-2 text-[11px] text-slate-400">
++                        {lang === "fa"
++                          ? `توقف برنامه‌ریزی‌شده ${line.downtime.planned}دقیقه / ناخواسته ${line.downtime.unplanned}دقیقه`
++                          : `Planned ${line.downtime.planned}m / Unplanned ${line.downtime.unplanned}m`}
++                      </p>
+                     </div>
+-                    <p className="mt-2 text-[11px] text-slate-400">
+-                      {lang === "fa"
+-                        ? `توقف برنامه‌ریزی‌شده ${line.downtime.planned}دقیقه / ناخواسته ${line.downtime.unplanned}دقیقه`
+-                        : `Planned ${line.downtime.planned}m / Unplanned ${line.downtime.unplanned}m`}
+-                    </p>
+-                  </div>
+-                ))}
++                  ))}
++                </div>
+               </div>
+-            </div>
+-          </section>
++            </section>
+ 
+-          <section id="reports" className="grid gap-6 lg:grid-cols-3">
+-            <div className="rounded-3xl glass p-5 lg:col-span-2">
+-              <div className="flex flex-wrap items-center justify-between gap-3">
+-                <p className="text-sm font-semibold text-white">{t.reports}</p>
+-                <div className="flex items-center gap-2">
+-                  <FiDownload className="text-slate-200" />
+-                  <span className="text-xs text-slate-300">{t.viewReport}</span>
++            <section id="reports" className="grid gap-6 lg:grid-cols-3">
++              <div className="rounded-3xl glass p-5 lg:col-span-2">
++                <div className="flex flex-wrap items-center justify-between gap-3">
++                  <p className="text-sm font-semibold text-white">{t.reports}</p>
++                  <div className="flex items-center gap-2">
++                    <FiDownload className="text-slate-200" />
++                    <span className="text-xs text-slate-300">{t.viewReport}</span>
++                  </div>
+                 </div>
+-              </div>
+-              <div className="mt-4 overflow-auto rounded-2xl border border-white/10 bg-white/5">
+-                <table className="min-w-full text-xs sm:text-sm">
+-                  <thead className="bg-white/5 text-left text-slate-400">
+-                    <tr>
+-                      <th className="px-4 py-3">{lang === "fa" ? "دوره" : "Period"}</th>
+-                      <th className="px-4 py-3">{t.totalEnergy}</th>
+-                      <th className="px-4 py-3">{t.energyCost}</th>
+-                      <th className="px-4 py-3">OEE</th>
+-                    </tr>
+-                  </thead>
+-                  <tbody>
+-                    {energyData.map((row, idx) => (
+-                      <tr key={idx} className="border-t border-white/5 text-white">
+-                        <td className="px-4 py-3">{lang === "fa" ? row.labelFa : row.labelEn}</td>
+-                        <td className="px-4 py-3">
+-                          {formatNumber(lang, row.electricity + row.gas + row.air, { maximumFractionDigits: 0 })} kWh
+-                        </td>
+-                        <td className="px-4 py-3">${formatNumber(lang, row.cost)}</td>
+-                        <td className="px-4 py-3">{formatNumber(lang, averageOee)}%</td>
++                <div className="mt-4 overflow-auto rounded-2xl border border-white/10 bg-white/5">
++                  <table className="min-w-full text-xs sm:text-sm">
++                    <thead className="bg-white/5 text-left text-slate-400">
++                      <tr>
++                        <th className="px-4 py-3">{lang === "fa" ? "دوره" : "Period"}</th>
++                        <th className="px-4 py-3">{t.totalEnergy}</th>
++                        <th className="px-4 py-3">{t.energyCost}</th>
++                        <th className="px-4 py-3">OEE</th>
+                       </tr>
+-                    ))}
+-                  </tbody>
+-                </table>
+-              </div>
+-            </div>
+-            <div className="space-y-3 rounded-3xl glass p-5">
+-              <div className="flex items-center justify-between gap-3">
+-                <p className="text-sm font-semibold text-white">{lang === "fa" ? "احراز هویت پایه" : "Basic Authentication"}</p>
+-                <FiLock className="text-slate-200" />
+-              </div>
+-              <form onSubmit={handleAuth} className="space-y-3">
+-                <input
+-                  type="password"
+-                  value={password}
+-                  onChange={(e) => setPassword(e.target.value)}
+-                  placeholder={lang === "fa" ? "رمز عبور: energy123" : "Password: energy123"}
+-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white placeholder:text-slate-500 focus:border-teal-400 focus:outline-none"
+-                />
+-                <button
+-                  type="submit"
+-                  className="w-full rounded-xl bg-gradient-to-r from-royal-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-teal-500/20"
+-                >
+-                  {isAuthed ? (lang === "fa" ? "ورود انجام شد" : "Authenticated") : lang === "fa" ? "ورود" : "Login"}
+-                </button>
+-              </form>
+-              <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+-                <div className="flex items-center justify-between gap-3 text-sm text-white">
+-                  <span>{t.exportData}</span>
+-                  <span className={`text-xs ${isAuthed ? "text-teal-200" : "text-rose-200"}`}>
+-                    {isAuthed ? (lang === "fa" ? "فعال" : "Ready") : lang === "fa" ? "قفل" : "Locked"}
+-                  </span>
++                    </thead>
++                    <tbody>
++                      {energyData.map((row, idx) => (
++                        <tr key={idx} className="border-t border-white/5 text-white">
++                          <td className="px-4 py-3">{lang === "fa" ? row.labelFa : row.labelEn}</td>
++                          <td className="px-4 py-3">
++                            {formatNumber(lang, row.electricity + row.gas + row.air, { maximumFractionDigits: 0 })} kWh
++                          </td>
++                          <td className="px-4 py-3">${formatNumber(lang, row.cost)}</td>
++                          <td className="px-4 py-3">{formatNumber(lang, averageOee)}%</td>
++                        </tr>
++                      ))}
++                    </tbody>
++                  </table>
+                 </div>
+-                <p className="mt-1 text-[11px] text-slate-400">
+-                  {lang === "fa"
+-                    ? "برای دریافت خروجی CSV ابتدا ورود انجام دهید."
+-                    : "Authenticate to enable CSV export."}
+-                </p>
+-                <button
+-                  onClick={handleExport}
+-                  disabled={!isAuthed}
+-                  className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+-                    isAuthed
+-                      ? "bg-gradient-to-r from-teal-500 to-royal-500 text-white shadow-lg shadow-teal-500/30"
+-                      : "cursor-not-allowed border border-white/10 bg-white/5 text-slate-400"
+-                  }`}
+-                >
+-                  <FiDownload />
+-                  {t.download}
+-                </button>
+               </div>
+-              <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-slate-300">
+-                <p className="font-semibold text-white">{lang === "fa" ? "امنیت ابری" : "Cloud security"}</p>
+-                <p className="mt-1">
+-                  {lang === "fa"
+-                    ? "ارتباط رمزنگاری شده و احراز هویت پایه برای مدیریت صفحات حساس."
+-                    : "Encrypted transport and basic authentication guard sensitive panels."}
+-                </p>
++              <div className="space-y-3 rounded-3xl glass p-5">
++                <div className="flex items-center justify-between gap-3">
++                  <p className="text-sm font-semibold text-white">{lang === "fa" ? "احراز هویت پایه" : "Basic Authentication"}</p>
++                  <FiLock className="text-slate-200" />
++                </div>
++                <form onSubmit={handleAuth} className="space-y-3">
++                  <input
++                    type="password"
++                    value={password}
++                    onChange={(e) => setPassword(e.target.value)}
++                    placeholder={lang === "fa" ? "رمز عبور: energy123" : "Password: energy123"}
++                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white placeholder:text-slate-500 focus:border-teal-400 focus:outline-none"
++                  />
++                  <button
++                    type="submit"
++                    className="w-full rounded-xl bg-gradient-to-r from-royal-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-teal-500/20"
++                  >
++                    {isAuthed ? (lang === "fa" ? "ورود انجام شد" : "Authenticated") : lang === "fa" ? "ورود" : "Login"}
++                  </button>
++                </form>
++                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
++                  <div className="flex items-center justify-between gap-3 text-sm text-white">
++                    <span>{t.exportData}</span>
++                    <span className={`text-xs ${isAuthed ? "text-teal-200" : "text-rose-200"}`}>
++                      {isAuthed ? (lang === "fa" ? "فعال" : "Ready") : lang === "fa" ? "قفل" : "Locked"}
++                    </span>
++                  </div>
++                  <p className="mt-1 text-[11px] text-slate-400">
++                    {lang === "fa"
++                      ? "برای دریافت خروجی CSV ابتدا ورود انجام دهید."
++                      : "Authenticate to enable CSV export."}
++                  </p>
++                  <button
++                    onClick={handleExport}
++                    disabled={!isAuthed}
++                    className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${isAuthed
++                        ? "bg-gradient-to-r from-teal-500 to-royal-500 text-white shadow-lg shadow-teal-500/30"
++                        : "cursor-not-allowed border border-white/10 bg-white/5 text-slate-400"
++                      }`}
++                  >
++                    <FiDownload />
++                    {t.download}
++                  </button>
++                </div>
++                <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-slate-300">
++                  <p className="font-semibold text-white">{lang === "fa" ? "امنیت ابری" : "Cloud security"}</p>
++                  <p className="mt-1">
++                    {lang === "fa"
++                      ? "ارتباط رمزنگاری شده و احراز هویت پایه برای مدیریت صفحات حساس."
++                      : "Encrypted transport and basic authentication guard sensitive panels."}
++                  </p>
++                </div>
+               </div>
+-            </div>
+-          </section>
++            </section>
+ 
+             <section id="contact" className="grid gap-6 lg:grid-cols-2">
+               <div className="space-y-3 rounded-3xl glass p-6">
