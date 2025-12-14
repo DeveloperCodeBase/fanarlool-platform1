@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -172,9 +172,9 @@ const StatPill = ({ icon: Icon, title, value, accent }) => (
       >
         <Icon size={22} />
       </span>
-      <div>
+      <div className="min-w-0">
         <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{title}</p>
-        <p className="text-lg font-semibold text-white">{value}</p>
+        <p className="text-lg font-semibold text-white break-words">{value}</p>
       </div>
     </div>
     <div className="h-9 w-9 shrink-0 rounded-full border border-white/10 bg-white/5" />
@@ -188,9 +188,21 @@ function App() {
   const [energyTargets, setEnergyTargets] = useState({ electricity: 10, gas: 8, air: 12 });
   const [oeeTargets, setOeeTargets] = useState({ L1: 92, L2: 90, L3: 88 });
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarPinned, setSidebarPinned] = useState(true);
   const [password, setPassword] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
+  const navItems = useMemo(
+    () => [
+      { href: "#overview", label: lang === "fa" ? "داشبورد" : "Dashboard" },
+      { href: "#energy", label: lang === "fa" ? "انرژی" : "Energy" },
+      { href: "#oee", label: lang === "fa" ? "عملکرد" : "OEE" },
+      { href: "#reports", label: lang === "fa" ? "گزارش‌ها" : "Reports" },
+      { href: "#contact", label: lang === "fa" ? "ارتباط" : "Contact" },
+    ],
+    [lang]
+  );
+  const sidebarRef = useRef(null);
+  const sidebarTriggerRef = useRef(null);
+  const lastFocusedRef = useRef(null);
 
   const energyData = energyTimeline[timeframe];
   const oeeTrendData = oeeHistory[timeframe];
@@ -233,6 +245,18 @@ function App() {
   const averageOee = useMemo(
     () => Number((oeeLines.reduce((sum, item) => sum + item.oee, 0) / oeeLines.length).toFixed(1)),
     [oeeLines]
+  );
+
+  const tooltipStyles = useMemo(
+    () => ({
+      backgroundColor: "#0f172a",
+      border: "1px solid #1e293b",
+      borderRadius: 12,
+      maxWidth: 280,
+      whiteSpace: "pre-wrap",
+      direction: lang === "fa" ? "rtl" : "ltr",
+    }),
+    [lang]
   );
 
   const alerts = useMemo(() => {
@@ -311,136 +335,222 @@ function App() {
     }
   };
 
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+
   useEffect(() => {
-    document.body.style.overflow = sidebarOpen ? "hidden" : "";
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const syncDesktopSidebar = () => {
+      if (mq.matches) {
+        setSidebarOpen(false);
+      }
+    };
+    syncDesktopSidebar();
+    mq.addEventListener("change", syncDesktopSidebar);
+    return () => mq.removeEventListener("change", syncDesktopSidebar);
+  }, []);
+
+  useEffect(() => {
+    if (sidebarOpen) {
+      lastFocusedRef.current = document.activeElement;
+      const focusable = sidebarRef.current?.querySelectorAll(
+        "a, button, input, select, textarea, [tabindex]:not([tabindex='-1'])"
+      );
+      const firstElement = Array.from(focusable || []).find((el) => !el.hasAttribute("disabled"));
+      firstElement?.focus();
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      if (lastFocusedRef.current instanceof HTMLElement) {
+        lastFocusedRef.current.focus();
+        lastFocusedRef.current = null;
+      }
+    }
     return () => {
       document.body.style.overflow = "";
     };
   }, [sidebarOpen]);
 
-  const closeSidebar = () => setSidebarOpen(false);
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        closeSidebar();
+      }
+      if (event.key === "Tab" && sidebarRef.current) {
+        const focusable = sidebarRef.current.querySelectorAll(
+          "a, button, input, select, textarea, [tabindex]:not([tabindex='-1'])"
+        );
+        const items = Array.from(focusable).filter((el) => !el.hasAttribute("disabled"));
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (event.shiftKey) {
+          if (document.activeElement === first || document.activeElement === sidebarRef.current) {
+            event.preventDefault();
+            last.focus();
+          }
+        } else if (document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [closeSidebar, sidebarOpen]);
+
+  const SidebarContent = ({ isDesktop = false }) => (
+    <div className="flex h-full flex-col">
+      <div className="mb-10 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-royal-500 to-teal-500 text-xl font-bold text-white shadow-lg">
+            IV
+          </div>
+          <div>
+            <p className="text-sm font-semibold">Smart Vista</p>
+            <p className="text-xs text-slate-400">Energy & OEE Cloud</p>
+          </div>
+        </div>
+        <button
+          className={`rounded-xl border border-white/10 p-2 text-slate-300 hover:bg-white/5 ${isDesktop ? "hidden" : ""}`}
+          onClick={closeSidebar}
+          aria-label={lang === "fa" ? "بستن منو" : "Close navigation"}
+        >
+          ✕
+        </button>
+      </div>
+      <nav className="space-y-2 text-sm">
+        {navItems.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-base text-slate-200 transition hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400"
+            onClick={isDesktop ? undefined : closeSidebar}
+          >
+            <span>{item.label}</span>
+            <span className="text-xs text-slate-500 rtl:rotate-180">↗</span>
+          </a>
+        ))}
+      </nav>
+      <div className="mt-10 space-y-3 rounded-2xl border border-white/5 bg-white/5 p-4">
+        <p className="text-xs uppercase tracking-widest text-slate-400">{t.targets}</p>
+        <p className="text-base font-semibold text-white">{t.energyHub}</p>
+        <p className="text-xs text-slate-400">
+          {lang === "fa"
+            ? "پایش لحظه‌ای، اهداف و هشدارهای خود را از یک داشبورد لوکس مدیریت کنید."
+            : "Manage live monitoring, targets, and alerts from one refined dashboard."}
+        </p>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-slate-400">{t.exportData}</span>
+          <span className="rounded-full bg-teal-500/20 px-3 py-1 text-teal-100">CSV</span>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen text-slate-100">
       <div
-        className={`fixed inset-0 z-20 bg-slate-950/50 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        className={`fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
         onClick={closeSidebar}
         aria-hidden={!sidebarOpen}
       />
       <aside
-        className={`glass fixed inset-y-0 z-30 w-72 transform border-r rtl:border-r-0 rtl:border-l border-white/10 bg-slate-900/80 p-6 transition-transform duration-300 ease-in-out ltr:left-0 rtl:right-0 ${sidebarOpen ? "translate-x-0" : "ltr:-translate-x-full rtl:translate-x-full"
-          } ${sidebarPinned ? "lg:translate-x-0" : "lg:ltr:-translate-x-full lg:rtl:translate-x-full"} max-h-screen overflow-y-auto`}
+        id="dashboard-drawer"
+        ref={sidebarRef}
+        role="navigation"
+        aria-label={lang === "fa" ? "ناوبری داشبورد" : "Dashboard navigation"}
+        aria-hidden={!sidebarOpen}
+        tabIndex={sidebarOpen ? 0 : -1}
+        className={`glass fixed inset-y-0 right-0 z-50 w-72 max-w-[92vw] transform border-l border-white/10 bg-slate-900/80 p-6 transition-transform duration-300 ease-in-out lg:hidden ${sidebarOpen ? "translate-x-0" : "translate-x-full"} max-h-screen overflow-y-auto`}
       >
-        <div className="mb-10 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-royal-500 to-teal-500 text-xl font-bold text-white shadow-lg">
-              IV
-            </div>
-            <div>
-              <p className="text-sm font-semibold">Smart Vista</p>
-              <p className="text-xs text-slate-400">Energy & OEE Cloud</p>
-            </div>
-          </div>
-          <button
-            className="rounded-xl border border-white/10 p-2 text-slate-300 hover:bg-white/5 lg:hidden"
-            onClick={closeSidebar}
-            aria-label="Close navigation"
-          >
-            ✕
-          </button>
-        </div>
-        <nav className="space-y-2 text-sm">
-          {[
-            { href: "#overview", label: lang === "fa" ? "داشبورد" : "Dashboard" },
-            { href: "#energy", label: lang === "fa" ? "داده‌ها" : "Data" },
-            { href: "#oee", label: lang === "fa" ? "عملیات OEE" : "Operations" },
-            { href: "#reports", label: lang === "fa" ? "گزارش‌ها" : "Reports" },
-            { href: "#contact", label: lang === "fa" ? "ارتباط" : "Contact" },
-          ].map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="flex items-center justify-between rounded-xl px-3 py-2 text-slate-200 transition hover:bg-white/5"
-              onClick={closeSidebar}
-            >
-              <span>{item.label}</span>
-              <span className="text-xs text-slate-500 rtl:rotate-180">↗</span>
-            </a>
-          ))}
-        </nav>
-        <div className="mt-10 space-y-3 rounded-2xl border border-white/5 bg-white/5 p-4">
-          <p className="text-xs uppercase tracking-widest text-slate-400">{t.targets}</p>
-          <p className="text-base font-semibold text-white">{t.energyHub}</p>
-          <p className="text-xs text-slate-400">
-            {lang === "fa"
-              ? "پایش لحظه‌ای، اهداف و هشدارهای خود را از یک داشبورد لوکس مدیریت کنید."
-              : "Manage live monitoring, targets, and alerts from one refined dashboard."}
-          </p>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-400">{t.exportData}</span>
-            <span className="rounded-full bg-teal-500/20 px-3 py-1 text-teal-100">CSV</span>
-          </div>
+        <SidebarContent />
+      </aside>
+
+      <aside
+        role="navigation"
+        aria-label={lang === "fa" ? "ناوبری داشبورد" : "Dashboard navigation"}
+        className="hidden lg:fixed lg:inset-y-0 lg:right-0 lg:z-40 lg:flex lg:w-72"
+      >
+        <div className="glass flex h-full w-full flex-col overflow-y-auto border-l border-white/10 bg-slate-900/80 p-6">
+          <SidebarContent isDesktop />
         </div>
       </aside>
 
-      <div className={`flex min-w-0 flex-1 flex-col transition-all duration-300 ${sidebarPinned ? 'ltr:lg:ml-72 rtl:lg:mr-72' : ''}`}>
+      <div className="flex min-w-0 flex-1 flex-col transition-all duration-300 lg:pr-72">
         <header className="sticky top-0 z-20 backdrop-blur-md">
-          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-slate-900/80 px-4 py-4 lg:flex-nowrap lg:px-8">
-            <div className="flex min-w-0 flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-xs text-slate-300">
-                <FiActivity />
-                <span>{t.energyHub}</span>
+          <div className="flex min-w-0 flex-col gap-3 border-b border-white/10 bg-slate-900/80 px-4 py-4 md:px-6 lg:px-8">
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+                <button
+                  ref={sidebarTriggerRef}
+                  className="flex items-center justify-center rounded-xl border border-white/10 p-2 text-slate-200 hover:bg-white/5 lg:hidden"
+                  onClick={() => setSidebarOpen(true)}
+                  aria-expanded={sidebarOpen}
+                  aria-controls="dashboard-drawer"
+                  aria-label={lang === "fa" ? "باز کردن منو" : "Open menu"}
+                >
+                  <FiMenu size={18} />
+                </button>
+                <div className="flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-royal-500 to-teal-500 text-sm font-bold text-white">
+                    IV
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold leading-tight text-white">Smart Vista</p>
+                    <p className="text-xs leading-tight text-slate-400">{t.energyHub}</p>
+                  </div>
+                </div>
+                <nav className="hidden md:flex flex-1 flex-wrap items-center gap-3 lg:gap-4 text-sm text-slate-200">
+                  {navItems.map((item) => (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      className="rounded-full px-3 py-1.5 transition hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400"
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </nav>
               </div>
-              <div className="hidden items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-xs text-slate-300 sm:flex">
-                <FiGlobe />
-                <span>{t.languageName}</span>
+              <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                <button
+                  onClick={toggleLanguage}
+                  className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:border-white/20 hover:bg-white/10"
+                >
+                  <FiGlobe />
+                  {lang === "fa" ? "English" : "فارسی"}
+                </button>
+                <a
+                  href="#overview"
+                  className="flex items-center gap-2 rounded-full bg-gradient-to-r from-royal-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-teal-500/20 transition hover:from-royal-400 hover:to-teal-400"
+                >
+                  {lang === "fa" ? "مشاهده دمو" : "View demo"}
+                </a>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-              <button
-                className="flex items-center justify-center rounded-xl border border-white/10 p-2 text-slate-200 hover:bg-white/5 lg:hidden"
-                onClick={() => setSidebarOpen(true)}
-                aria-expanded={sidebarOpen}
-                aria-label="Open navigation"
-              >
-                <FiMenu size={18} />
-              </button>
-              <button
-                className="hidden items-center justify-center rounded-xl border border-white/10 p-2 text-slate-200 hover:bg-white/5 lg:flex"
-                onClick={() => setSidebarPinned((prev) => !prev)}
-                aria-label={lang === "fa" ? "تغییر نمایش منو" : "Toggle sidebar"}
-              >
-                <FiMenu size={18} />
-              </button>
-              <button
-                onClick={toggleLanguage}
-                className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:border-white/20 hover:bg-white/10"
-              >
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300">
+              <span className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5">
+                <FiActivity />
+                <span className="truncate">{t.energyHub}</span>
+              </span>
+              <span className="hidden items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 sm:flex">
                 <FiGlobe />
-                {lang === "fa" ? "English" : "فارسی"}
-              </button>
-              <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-3 py-2">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-royal-500 to-teal-500 text-sm font-bold text-white">
-                  IV
-                </div>
-                <div className="text-xs leading-tight">
-                  <p className="font-semibold text-white">شرکت شبکه هوشمند</p>
-                  <p className="text-slate-400">ابتکار ویستا</p>
-                </div>
-              </div>
+                <span className="truncate">{t.languageName}</span>
+              </span>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 pb-10 pt-6">
+        <main className="flex-1 min-w-0 pb-10 pt-6">
           <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-col space-y-8 px-4 sm:px-6 lg:px-8">
             <section id="overview" className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-2 space-y-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-6 shadow-2xl ring-1 ring-white/5">
+              <div className="lg:col-span-2 min-w-0 space-y-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/80 to-slate-950 p-6 shadow-2xl ring-1 ring-white/5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm uppercase tracking-[0.2em] text-slate-400">{t.energyHub}</p>
-                    <h1 className="mt-2 text-3xl font-bold text-white sm:text-4xl">{t.heroTitle}</h1>
+                    <h1 className="mt-2 text-3xl font-bold leading-tight text-white sm:text-4xl">{t.heroTitle}</h1>
                     <p className="mt-3 max-w-3xl text-sm text-slate-300 sm:text-base">{t.heroSubtitle}</p>
                   </div>
                   <div className="hidden rounded-2xl border border-white/5 bg-white/5 px-3 py-2 text-xs text-slate-200 sm:block">
@@ -467,7 +577,7 @@ function App() {
                   {carriers.map((carrier) => {
                     const data = aggregatedEnergy.totals.find((item) => item.key === carrier.key);
                     return (
-                      <div key={carrier.key} className="glass rounded-2xl p-4">
+                      <div key={carrier.key} className="glass min-w-0 rounded-2xl p-4">
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-sm text-slate-300">
                             {lang === "fa" ? carrier.label.fa : carrier.label.en}
@@ -488,7 +598,7 @@ function App() {
                   })}
                 </div>
               </div>
-              <div className="space-y-4 rounded-3xl glass p-5">
+              <div className="min-w-0 space-y-4 rounded-3xl glass p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{t.realtimeAlerts}</p>
                   <span className="rounded-full bg-rose-500/20 px-3 py-1 text-xs text-rose-100">
@@ -504,10 +614,10 @@ function App() {
                       >
                         <span
                           className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${alert.severity === "high"
-                              ? "bg-rose-500/20 text-rose-200"
-                              : alert.severity === "medium"
-                                ? "bg-amber-500/20 text-amber-100"
-                                : "bg-teal-500/20 text-teal-100"
+                            ? "bg-rose-500/20 text-rose-200"
+                            : alert.severity === "medium"
+                              ? "bg-amber-500/20 text-amber-100"
+                              : "bg-teal-500/20 text-teal-100"
                             }`}
                         >
                           {alert.severity === "high" ? <FiAlertTriangle /> : <FiActivity />}
@@ -558,7 +668,7 @@ function App() {
             </section>
 
             <section id="energy" className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-2 rounded-3xl glass p-5">
+              <div className="lg:col-span-2 min-w-0 rounded-3xl glass p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{t.energyDashboard}</p>
@@ -577,9 +687,9 @@ function App() {
                     ))}
                   </div>
                 </div>
-                <div className="mt-4 h-[clamp(250px,30vh,350px)] overflow-x-auto">
+                <div className="mt-4 h-[clamp(260px,35vh,420px)] w-full min-w-0 overflow-hidden">
                   <div className="h-full w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <AreaChart data={energyData}>
                         <defs>
                           <linearGradient id="energyGradient" x1="0" y1="0" x2="0" y2="1">
@@ -593,10 +703,7 @@ function App() {
                           tick={{ fill: "#cbd5e1", fontSize: 12 }}
                         />
                         <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
-                          labelStyle={{ color: "#e2e8f0" }}
-                        />
+                        <Tooltip contentStyle={tooltipStyles} labelStyle={{ color: "#e2e8f0" }} />
                         <Legend />
                         {carriers.map((carrier) => (
                           <Area
@@ -615,7 +722,7 @@ function App() {
                   </div>
                 </div>
               </div>
-              <div className="space-y-4 rounded-3xl glass p-5">
+              <div className="min-w-0 space-y-4 rounded-3xl glass p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{t.energyCostBreakdown}</p>
                   <FiTrendingUp className="text-teal-200" />
@@ -672,20 +779,21 @@ function App() {
             </section>
 
             <section className="grid gap-6 lg:grid-cols-3">
-              <div className="space-y-4 rounded-3xl glass p-5">
+              <div className="min-w-0 space-y-4 rounded-3xl glass p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{t.energyByCarrier}</p>
                   <FiZap className="text-cyan-200" />
                 </div>
-                <div className="h-[clamp(250px,30vh,350px)] w-full">
+                <div className="h-[clamp(260px,32vh,380px)] w-full min-w-0">
                   <div className="h-full w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <BarChart data={aggregatedEnergy.totals}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                         <XAxis dataKey="key" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
                         <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
                         <Tooltip
-                          contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+                          contentStyle={tooltipStyles}
+                          labelStyle={{ color: "#e2e8f0" }}
                           labelFormatter={(label) =>
                             lang === "fa"
                               ? carriers.find((c) => c.key === label).label.fa
@@ -703,14 +811,14 @@ function App() {
                 </div>
               </div>
 
-              <div className="rounded-3xl glass p-5">
+              <div className="min-w-0 rounded-3xl glass p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{t.energyCost}</p>
                   <FiTrendingUp className="text-emerald-200" />
                 </div>
-                <div className="h-[clamp(250px,30vh,350px)] w-full">
+                <div className="h-[clamp(260px,32vh,380px)] w-full min-w-0">
                   <div className="h-full w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <PieChart>
                         <Pie
                           data={costBreakdown}
@@ -734,7 +842,7 @@ function App() {
                 </p>
               </div>
 
-              <div className="rounded-3xl glass p-5">
+              <div className="min-w-0 rounded-3xl glass p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{t.reductionGoals}</p>
                   <FiTarget className="text-indigo-200" />
@@ -769,7 +877,7 @@ function App() {
             </section>
 
             <section id="oee" className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-2 rounded-3xl glass p-5">
+              <div className="lg:col-span-2 min-w-0 rounded-3xl glass p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] text-slate-400">OEE</p>
@@ -786,9 +894,9 @@ function App() {
                     ))}
                   </div>
                 </div>
-                <div className="mt-4 h-[clamp(250px,30vh,350px)] overflow-x-auto">
+                <div className="mt-4 h-[clamp(260px,35vh,420px)] w-full min-w-0 overflow-hidden">
                   <div className="h-full w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <LineChart data={oeeTrendData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                         <XAxis
@@ -796,10 +904,7 @@ function App() {
                           tick={{ fill: "#cbd5e1", fontSize: 12 }}
                         />
                         <YAxis domain={[70, 100]} tick={{ fill: "#cbd5e1", fontSize: 12 }} />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
-                          labelStyle={{ color: "#e2e8f0" }}
-                        />
+                        <Tooltip contentStyle={tooltipStyles} labelStyle={{ color: "#e2e8f0" }} />
                         <Legend />
                         <Line type="monotone" dataKey="lineA" name={lang === "fa" ? "خط A" : "Line A"} stroke="#22d3ee" strokeWidth={2} />
                         <Line type="monotone" dataKey="lineB" name={lang === "fa" ? "خط B" : "Line B"} stroke="#a855f7" strokeWidth={2} />
@@ -809,7 +914,7 @@ function App() {
                   </div>
                 </div>
               </div>
-              <div className="space-y-4 rounded-3xl glass p-5">
+              <div className="min-w-0 space-y-4 rounded-3xl glass p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{t.compareTarget}</p>
                   <FiTarget className="text-teal-200" />
@@ -851,14 +956,14 @@ function App() {
             </section>
 
             <section className="grid gap-6 lg:grid-cols-3">
-              <div className="rounded-3xl glass p-5">
+              <div className="min-w-0 rounded-3xl glass p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{t.downtimeReasons}</p>
                   <FiAlertTriangle className="text-amber-200" />
                 </div>
-                <div className="h-[clamp(250px,30vh,350px)] overflow-x-auto">
+                <div className="h-[clamp(260px,35vh,420px)] w-full min-w-0 overflow-hidden">
                   <div className="h-full w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <BarChart data={downtimeReasons}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                         <XAxis
@@ -866,10 +971,7 @@ function App() {
                           tick={{ fill: "#cbd5e1", fontSize: 12 }}
                         />
                         <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
-                          labelStyle={{ color: "#e2e8f0" }}
-                        />
+                        <Tooltip contentStyle={tooltipStyles} labelStyle={{ color: "#e2e8f0" }} />
                         <Bar dataKey="minutes" fill="#22d3ee" radius={[8, 8, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -877,21 +979,21 @@ function App() {
                 </div>
               </div>
 
-              <div className="rounded-3xl glass p-5">
+              <div className="min-w-0 rounded-3xl glass p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{t.scatterTitle}</p>
                   <FiActivity className="text-emerald-200" />
                 </div>
-                <div className="h-[clamp(250px,30vh,350px)] overflow-x-auto">
+                <div className="h-[clamp(260px,35vh,420px)] w-full min-w-0 overflow-hidden">
                   <div className="h-full w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <ScatterChart>
                         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                         <XAxis type="number" dataKey="freq" name="Frequency" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
                         <YAxis type="number" dataKey="minutes" name="Minutes" tick={{ fill: "#cbd5e1", fontSize: 12 }} />
                         <Tooltip
                           cursor={{ strokeDasharray: "3 3" }}
-                          contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b" }}
+                          contentStyle={tooltipStyles}
                           labelStyle={{ color: "#e2e8f0" }}
                           formatter={(value, _name, props) => {
                             const payload = props?.payload?.payload;
@@ -910,7 +1012,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="rounded-3xl glass p-5">
+              <div className="min-w-0 rounded-3xl glass p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{t.targets}</p>
                   <FiTarget className="text-indigo-200" />
@@ -939,7 +1041,7 @@ function App() {
             </section>
 
             <section id="reports" className="grid gap-6 lg:grid-cols-3">
-              <div className="rounded-3xl glass p-5 lg:col-span-2">
+              <div className="min-w-0 rounded-3xl glass p-5 lg:col-span-2">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{t.reports}</p>
                   <div className="flex items-center gap-2">
@@ -947,9 +1049,9 @@ function App() {
                     <span className="text-xs text-slate-300">{t.viewReport}</span>
                   </div>
                 </div>
-                <div className="mt-4 overflow-auto rounded-2xl border border-white/10 bg-white/5">
-                  <table className="min-w-full text-xs sm:text-sm">
-                    <thead className="bg-white/5 text-left text-slate-400">
+                <div className="mt-4 max-w-full overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
+                  <table className="min-w-[640px] w-full text-xs sm:text-sm">
+                    <thead className="bg-white/5 text-start text-slate-400">
                       <tr>
                         <th className="px-4 py-3">{lang === "fa" ? "دوره" : "Period"}</th>
                         <th className="px-4 py-3">{t.totalEnergy}</th>
@@ -972,7 +1074,7 @@ function App() {
                   </table>
                 </div>
               </div>
-              <div className="space-y-3 rounded-3xl glass p-5">
+              <div className="min-w-0 space-y-3 rounded-3xl glass p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{lang === "fa" ? "احراز هویت پایه" : "Basic Authentication"}</p>
                   <FiLock className="text-slate-200" />
@@ -1008,8 +1110,8 @@ function App() {
                     onClick={handleExport}
                     disabled={!isAuthed}
                     className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${isAuthed
-                        ? "bg-gradient-to-r from-teal-500 to-royal-500 text-white shadow-lg shadow-teal-500/30"
-                        : "cursor-not-allowed border border-white/10 bg-white/5 text-slate-400"
+                      ? "bg-gradient-to-r from-teal-500 to-royal-500 text-white shadow-lg shadow-teal-500/30"
+                      : "cursor-not-allowed border border-white/10 bg-white/5 text-slate-400"
                       }`}
                   >
                     <FiDownload />
@@ -1028,7 +1130,7 @@ function App() {
             </section>
 
             <section id="contact" className="grid gap-6 lg:grid-cols-2">
-              <div className="space-y-3 rounded-3xl glass p-6">
+              <div className="min-w-0 space-y-3 rounded-3xl glass p-6">
                 <p className="text-sm font-semibold text-white">{t.contactTitle}</p>
                 <p className="text-sm text-slate-300">{t.companyDesc}</p>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -1054,7 +1156,7 @@ function App() {
                   <span>شرکت شبکه هوشمند ابتکار ویستا</span>
                 </div>
               </div>
-              <div className="rounded-3xl bg-gradient-to-br from-royal-500/50 via-teal-500/40 to-slate-900 p-6 text-white shadow-2xl">
+              <div className="min-w-0 rounded-3xl bg-gradient-to-br from-royal-500/50 via-teal-500/40 to-slate-900 p-6 text-white shadow-2xl">
                 <p className="text-sm uppercase tracking-[0.2em] text-white/70">{t.energyHub}</p>
                 <h3 className="mt-2 text-2xl font-bold">{lang === "fa" ? "گزارش‌های هوشمند" : "Intelligent reports"}</h3>
                 <p className="mt-2 text-sm text-white/80">
